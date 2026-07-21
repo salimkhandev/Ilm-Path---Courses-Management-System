@@ -1,5 +1,5 @@
 // PashtoSkills Service Worker
-const CACHE_VERSION = 'V2';
+const CACHE_VERSION = 'V3';
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`;
 
 // Static shell pages to pre-cache on install
