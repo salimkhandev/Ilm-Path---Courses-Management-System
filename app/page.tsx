@@ -14,23 +14,23 @@ export const metadata: Metadata = {
 const FEATURES = [
   {
     icon: <Lock className="w-10 h-10 text-amber-500" />,
-    title: 'Secure Streaming',
-    desc: 'Videos served via short-lived signed URLs. Nothing is ever permanently downloadable to your device.',
+    title: 'Safe & Private',
+    desc: 'Your videos are protected. Only you can watch them — no one can copy or share them.',
   },
   {
     icon: <Download className="w-10 h-10 text-amber-500" />,
-    title: 'Offline Access',
-    desc: 'Cache any video securely in your browser for offline viewing — no internet required after download.',
+    title: 'Watch Without Internet',
+    desc: 'Save any video to your device and watch later — even with no internet connection.',
   },
   {
     icon: <GraduationCap className="w-10 h-10 text-amber-500" />,
     title: 'Expert Courses',
-    desc: 'Carefully crafted curriculum by experienced instructors. Learn at your own pace, any time.',
+    desc: 'Learn from experienced teachers in your own language, at your own pace.',
   },
   {
     icon: <Smartphone className="w-10 h-10 text-amber-500" />,
     title: 'Any Device',
-    desc: 'Installable PWA — works on Android, iOS, Windows, and desktop. No app store needed.',
+    desc: 'Works on Android, iPhone, and computer. No app store needed — just open in browser.',
   },
 ];
 

@@ -58,23 +58,15 @@ export default function OfflineDownloadsPage() {
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '3rem 1.5rem' }}>
       
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <Link href="/" className="text-xs text-muted hover:underline mb-2 inline-block">
-            ← Home
-          </Link>
-          <h1 className="text-2xl font-bold">Offline Downloads</h1>
-          <p className="text-xs text-muted mt-1">Videos stored securely in your browser's private storage — playable without internet</p>
-        </div>
+      <div className="mb-6">
+        <Link href="/" className="text-xs text-muted hover:underline mb-2 inline-block">← Home</Link>
+        <h1 className="text-xl font-bold">Saved Videos</h1>
       </div>
 
       {downloads.length === 0 ? (
-        <div className="card text-center py-12 text-secondary">
-          No offline downloads yet.
-          <br />
-          <span className="text-xs text-muted mt-2 block">
-            When you have internet, go to a course video and tap &quot;Download Offline&quot; to save it here.
-          </span>
+        <div className="card text-center py-10 text-secondary">
+          <p className="text-sm">No saved videos yet.</p>
+          <p className="text-xs text-muted mt-1">Open a course video and tap <strong>Save for Offline</strong>.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-8">
@@ -118,32 +110,30 @@ export default function OfflineDownloadsPage() {
                   background: activeVideo?.url === d.localUrl ? 'rgba(245,158,11,0.04)' : 'var(--surface-1)'
                 }}
               >
-                <div className="min-w-0 flex-1 mr-4">
-                  <span className="text-xs text-brand-400 font-semibold uppercase">{d.courseTitle}</span>
-                  <h4 className="font-semibold text-base mt-1 mb-1 truncate">{d.videoTitle}</h4>
-                  <p className="text-xs text-muted">
-                    💾 {(d.sizeBytes / 1024 / 1024).toFixed(1)} MB &nbsp;|&nbsp; Saved: {new Date(d.downloadedAt).toLocaleDateString()}
-                  </p>
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs text-brand-400 font-semibold">{d.courseTitle}</span>
+                  <h4 className="font-semibold text-sm mt-0.5 truncate">{d.videoTitle}</h4>
+                  <p className="text-xs text-muted">{(d.sizeBytes / 1024 / 1024).toFixed(1)} MB · {new Date(d.downloadedAt).toLocaleDateString()}</p>
                 </div>
 
-                <div className="flex gap-2 self-start sm:self-auto">
+                <div className="flex gap-1.5 self-start sm:self-auto shrink-0">
                   {d.localUrl && (
                     <button 
-                      className="btn-primary text-sm px-4 py-2"
+                      className="btn-primary text-xs px-3 py-1.5"
                       onClick={() => {
                         setActiveVideo({ title: d.videoTitle, url: d.localUrl! });
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                     >
-                      {activeVideo?.url === d.localUrl ? 'Playing...' : 'Play Offline'}
+                      {activeVideo?.url === d.localUrl ? 'Playing' : 'Play'}
                     </button>
                   )}
                   <button 
-                    className="text-sm px-4 py-2 border rounded hover:bg-opacity-20 hover:bg-red-500 text-red transition-colors"
+                    className="text-xs px-3 py-1.5 border rounded transition-colors"
                     style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.2)' }}
                     onClick={() => handleDelete(d.videoId)}
                   >
-                    Delete
+                    Remove
                   </button>
                 </div>
               </div>

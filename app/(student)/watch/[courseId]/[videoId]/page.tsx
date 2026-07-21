@@ -172,7 +172,7 @@ export default function WatchVideoPage() {
       // it's also populated before the user actually goes offline.
       if ('caches' in window) {
         try {
-          const cache = await caches.open('app-cache-V8');
+          const cache = await caches.open('app-cache-V9');
           await cache.add('/downloads');
         } catch (e) {
           console.warn('Failed to pre-cache /downloads for offline viewing', e);
@@ -240,7 +240,7 @@ export default function WatchVideoPage() {
               />
             ) : (
               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                {error ? 'Unable to load stream.' : 'Initializing secure connection...'}
+                {error ? 'Could not load video.' : 'Loading video...'}
               </div>
             )}
           </div>
@@ -266,7 +266,7 @@ export default function WatchVideoPage() {
                   onClick={handleDownloadOffline}
                   disabled={downloading}
                 >
-                  {downloading ? `Downloading... ${downloadProgress}%` : '💾 Download Offline'}
+                  {downloading ? `Saving... ${downloadProgress}%` : '↓ Save for Offline'}
                 </button>
               )}
             </div>
