@@ -15,10 +15,10 @@ function formatDuration(seconds: number) {
 
 export default async function StudentDashboardPage() {
   const session = await getServerSession(authOptions);
-  
+
   await connectDB();
-  
-  // Find the user to get their enrolled courses
+
+  // Look up user by their session ID (more reliable than email — avoids case-mismatch on stale JWTs)
   const User = (await import('@/lib/models/User')).default;
   const dbUser = await User.findOne({ email: session?.user?.email }).lean();
   const enrolledIds = dbUser?.enrolledCourseIds || [];
@@ -42,7 +42,7 @@ export default async function StudentDashboardPage() {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--surface-0)' }}>
       <main style={{ flex: 1, padding: '3rem 1.5rem' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          
+
           <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
             <div>
               <h1 style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 700 }}>
@@ -52,9 +52,9 @@ export default async function StudentDashboardPage() {
                 Access status: <span className="font-semibold text-brand-400">Premium active</span>
               </p>
             </div>
-            
-            <Link 
-              href="/downloads" 
+
+            <Link
+              href="/downloads"
               className="text-sm font-semibold px-4 py-2 border rounded-lg hover:bg-surface-2 transition-colors flex items-center gap-2"
               style={{ color: 'var(--text-secondary)', borderColor: 'var(--surface-2)', textDecoration: 'none' }}
             >
@@ -82,9 +82,9 @@ export default async function StudentDashboardPage() {
               }}
             >
               {coursesWithUrls.map((course) => (
-                <div 
-                  key={course.id} 
-                  className="card flex flex-col justify-between" 
+                <div
+                  key={course.id}
+                  className="card flex flex-col justify-between"
                   style={{ padding: 0, overflow: 'hidden' }}
                 >
                   <div>
@@ -92,10 +92,10 @@ export default async function StudentDashboardPage() {
                     <div style={{ height: '170px', background: 'var(--surface-2)', overflow: 'hidden', position: 'relative' }}>
                       {course.thumbnailUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img 
-                          src={course.thumbnailUrl} 
-                          alt={course.title} 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        <img
+                          src={course.thumbnailUrl}
+                          alt={course.title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
                         <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>🎓</div>
@@ -107,7 +107,7 @@ export default async function StudentDashboardPage() {
                       <h3 className="font-semibold text-base mb-1" style={{ color: 'var(--text-primary)' }}>
                         {course.title}
                       </h3>
-                      <p 
+                      <p
                         className="text-sm text-secondary mb-4"
                         style={{
                           display: '-webkit-box',
@@ -118,7 +118,7 @@ export default async function StudentDashboardPage() {
                       >
                         {course.description}
                       </p>
-                      
+
                       <div className="flex gap-4 text-xs text-muted">
                         <span>📹 {course.videoCount} videos</span>
                         <span>⏱ {formatDuration(course.totalDuration)}</span>
@@ -128,8 +128,8 @@ export default async function StudentDashboardPage() {
 
                   <div className="p-4 border-t" style={{ borderColor: 'var(--surface-2)' }}>
                     {course.firstVideoId ? (
-                      <Link 
-                        href={`/watch/${course.id}/${course.firstVideoId}`} 
+                      <Link
+                        href={`/watch/${course.id}/${course.firstVideoId}`}
                         className="btn-primary text-center text-sm py-2 block"
                         style={{ textDecoration: 'none' }}
                       >
