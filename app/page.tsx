@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import OfflineAwareHome from '@/components/OfflineAwareHome';
 import { Lock, Download, GraduationCap, Smartphone } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -35,7 +36,7 @@ const FEATURES = [
 
 export default function HomePage() {
   return (
-    <>
+    <OfflineAwareHome>
       <Navbar />
 
       {/* Hero */}
@@ -122,6 +123,6 @@ export default function HomePage() {
       </section>
 
       <Footer />
-    </>
+    </OfflineAwareHome>
   );
 }
