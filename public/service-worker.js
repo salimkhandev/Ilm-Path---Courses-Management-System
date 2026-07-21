@@ -1,5 +1,5 @@
 // IlmPath Service Worker
-const CACHE_VERSION = 'V10';
+const CACHE_VERSION = 'V11';
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`;
 
 // Static shell pages to pre-cache on install — these must work fully offline
@@ -29,7 +29,9 @@ function shouldBypass(url) {
     url.includes('/register') ||
     url.includes('/forgot-password') ||
     url.includes('/reset-password') ||
-    url.includes('/_next/webpack-hmr') // HMR dev-only
+    url.includes('/_next/webpack-hmr') || // HMR dev-only
+    url.includes('hot-update') ||         // Next.js HMR files
+    url.includes('/_next/static/webpack/') // Next.js webpack metadata
   );
 }
 
