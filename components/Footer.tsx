@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 const LINKS = [
   { href: '/courses', label: 'Courses' },
@@ -12,9 +13,12 @@ export default function Footer() {
   return (
     <footer className="mt-auto border-t border-slate-800 px-6 py-10 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-7xl flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="font-bold text-lg text-amber-500">PashtoSkills</p>
-          <p className="text-xs text-slate-500 mt-1">Learn Without Limits</p>
+        <div className="flex items-center gap-3">
+          <Image src="/logo.png" alt="PashtoSkills" width={40} height={40} className="rounded-md" />
+          <div>
+            <p className="font-bold text-lg text-amber-500">PashtoSkills</p>
+            <p className="text-xs text-slate-500 mt-1">Learn Without Limits</p>
+          </div>
         </div>
 
         <nav className="flex flex-wrap gap-4 sm:gap-5">

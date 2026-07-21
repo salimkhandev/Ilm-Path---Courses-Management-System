@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { useNetwork } from '@/hooks/useNetwork';
@@ -31,8 +32,9 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex-shrink-0 font-bold text-xl text-amber-500 no-underline tracking-tight"
+            className="flex-shrink-0 font-bold text-xl text-amber-500 no-underline tracking-tight flex items-center gap-2"
           >
+            <Image src="/logo.png" alt="PashtoSkills" width={32} height={32} className="rounded-md" />
             PashtoSkills
           </Link>
 
