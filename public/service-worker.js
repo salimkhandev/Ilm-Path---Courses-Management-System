@@ -1,129 +1,118 @@
-// self.__WB_MANIFEST
-
+// PashtoSkills Service Worker
 const CACHE_VERSION = 'V2';
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`;
 
+// Static shell pages to pre-cache on install
 const FILES_TO_CACHE = [
   '/',
   '/manifest',
 ];
 
-// Install event: Cache assets
+// ─── Install ────────────────────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing.');
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('🚀 Service Worker: Installation Started');
       for (const file of FILES_TO_CACHE) {
         try {
           await cache.add(new Request(file, { cache: 'reload' }));
-          console.log('✅ Cached Successfully:', file);
-        } catch (error) {
-          console.warn('❌ Cache Failed:', file, error);
+        } catch (err) {
+          console.warn('[SW] Pre-cache failed for', file, err);
         }
       }
-      console.log('🎉 Service Worker: Installation Complete');
     })
   );
 });
 
-// Activate event
+// ─── Activate ───────────────────────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating.');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('🧹 Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())
   );
-  console.log('💪 Service Worker: Activated');
-  return self.clients.claim();
+  console.log('[SW] Activated');
 });
 
-// Fetch event handler with proper dynamic caching and route bypassing
+// ─── Fetch ──────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests and non-same-origin requests
-  if (
-    !event.request.url.startsWith(self.location.origin) ||
-    event.request.method !== 'GET'
-  ) {
-    return;
-  }
+  const { request } = event;
+  const url = request.url;
 
-  // 🚨 FIX: Skip caching for authentication and dynamic API endpoints for IlmPath
-  const url = event.request.url;
-  if (
-    url.includes('/api/auth/') ||          // NextAuth endpoints
-    url.includes('/api/payment') ||        // Payment endpoints
-    url.includes('/api/admin') ||          // Admin endpoints
-    url.includes('/api/upload') ||         // Upload endpoints
-    url.includes('/_next/static/chunks/') || // Dynamic chunks
-    url.includes('/login') ||              // Login page
-    url.includes('/register')              // Register page
-  ) {
-    return; // Let these requests bypass the cache entirely
-  }
+  // Only handle same-origin GET requests
+  if (request.method !== 'GET' || !url.startsWith(self.location.origin)) return;
+
+  // Bypass: auth, dynamic APIs, admin, upload, Next.js internal chunks, auth pages
+  const shouldBypass =
+    url.includes('/api/auth/') ||
+    url.includes('/api/payment') ||
+    url.includes('/api/admin') ||
+    url.includes('/api/upload') ||
+    url.includes('/api/progress') ||
+    url.includes('/api/video/') ||
+    url.includes('/api/courses') ||
+    url.includes('/api/debug') ||
+    url.includes('/_next/static/chunks/') ||
+    url.includes('/login') ||
+    url.includes('/register');
+
+  if (shouldBypass) return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
 
-      return fetch(event.request)
+      return fetch(request)
         .then((networkResponse) => {
-          // Check if we received a valid response
-          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-            return networkResponse;
+          // Only cache successful, same-origin, basic responses
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            networkResponse.type === 'basic'
+          ) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone)).catch(() => {});
           }
-
-          // IMPORTANT: Clone the response before caching
-          const responseToCache = networkResponse.clone();
-
-          // Cache the fetched response
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            })
-            .catch((error) => {
-              console.error('❌ Cache put failed:', error);
-            });
-
           return networkResponse;
         })
-        .catch((error) => {
-          console.error('❌ Fetch failed:', error);
-          // For PWA, just let the app handle offline gracefully without breaking
-          // This allows the HTML skeleton to load so OPFS video player can function offline!
-          return new Response('Network error. You might be offline.', { status: 503 });
+        .catch(() => {
+          // ── Offline fallback ──────────────────────────────────────────────
+          // Return JSON for API-like requests, HTML for navigation requests
+          if (request.headers.get('accept')?.includes('text/html')) {
+            return caches.match('/') || new Response(
+              '<html><body><p>You are offline.</p></body></html>',
+              { headers: { 'Content-Type': 'text/html' } }
+            );
+          }
+          // JSON fallback so .json() callers don't throw "Unexpected end of JSON"
+          return new Response(
+            JSON.stringify({ error: 'offline', message: 'You are offline.' }),
+            { status: 503, headers: { 'Content-Type': 'application/json' } }
+          );
         });
     })
   );
 });
 
-// Optional: Add a message event handler for cache updates
+// ─── Messages ────────────────────────────────────────────────────────────────
 self.addEventListener('message', (event) => {
   const msg = event.data || {};
+
   if (msg.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+
   if (msg.type === 'CLEAR_CACHES') {
     event.waitUntil(
-      caches.keys().then((cacheNames) =>
-        Promise.all(cacheNames.map((name) => caches.delete(name)))
-      ).then(() => {
-        // Notify clients that caches are cleared
-        return self.clients.matchAll({ includeUncontrolled: true }).then((clients) => {
-          clients.forEach((client) => client.postMessage({ type: 'CACHES_CLEARED' }));
-        });
-      })
+      caches.keys()
+        .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+        .then(() =>
+          self.clients.matchAll({ includeUncontrolled: true }).then((clients) =>
+            clients.forEach((c) => c.postMessage({ type: 'CACHES_CLEARED' }))
+          )
+        )
     );
   }
 });
