@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { safeJson } from '@/lib/safeJson';
 
 interface Student {
   id: string;
@@ -27,7 +28,7 @@ export default function StudentsPage() {
 
   useEffect(() => {
     fetch('/api/admin/students')
-      .then(r => r.json())
+      .then(r => safeJson(r))
       .then(data => {
         if (data.error) throw new Error(data.error);
         setStudents(data);

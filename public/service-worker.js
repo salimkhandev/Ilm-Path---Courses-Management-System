@@ -26,15 +26,21 @@ self.addEventListener('install', (event) => {
 
 // ─── Activate ───────────────────────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
+  // Clean up old caches only — do NOT call clients.claim() here.
+  // skipWaiting() + clients.claim() together cause a race: the SW takes over
+  // existing tabs mid-session, interrupting in-flight fetches and producing
+  // empty responses that throw "Unexpected end of JSON input".
+  // The SW will take control naturally on the next page navigation.
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
       )
-    ).then(() => self.clients.claim())
+    )
   );
   console.log('[SW] Activated');
 });
+
 
 // ─── Fetch ──────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {

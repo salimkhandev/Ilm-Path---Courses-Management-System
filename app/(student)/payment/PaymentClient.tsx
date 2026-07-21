@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { compressImage } from '@/lib/image';
+import { safeJson } from '@/lib/safeJson';
 
 interface CourseOption {
   id: string;
@@ -31,8 +32,8 @@ export default function PaymentClient() {
   // Load available courses so the student can pick which one they are paying for
   useEffect(() => {
     fetch('/api/courses/public')
-      .then(r => r.json())
-      .then((data: CourseOption[]) => {
+      .then(r => safeJson<CourseOption[]>(r))
+      .then((data) => {
         setCourses(data);
         if (data.length > 0) setSelectedCourseId(data[0].id);
       })
@@ -78,7 +79,7 @@ export default function PaymentClient() {
       });
       
       if (!urlRes.ok) throw new Error('Failed to get upload URL');
-      const { url, key } = await urlRes.json();
+      const { url, key } = await safeJson<{ url: string; key: string }>(urlRes);
 
       // 3. Upload directly to Cloudflare R2
       const uploadRes = await fetch(url, {
@@ -104,7 +105,7 @@ export default function PaymentClient() {
       });
 
       if (!submitRes.ok) {
-        const d = await submitRes.json();
+        const d = await safeJson<{ error?: string }>(submitRes);
         throw new Error(d.error || 'Failed to submit payment record');
       }
 

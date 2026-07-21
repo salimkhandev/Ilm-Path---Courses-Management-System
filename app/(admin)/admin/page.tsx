@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { safeJson } from '@/lib/safeJson';
 import Link from 'next/link';
 
 interface PaymentItem {
@@ -34,7 +35,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch('/api/admin/payments');
       if (!res.ok) throw new Error('Failed to load payments.');
-      setPayments(await res.json());
+      setPayments(await safeJson(res));
     } catch (err: any) {
       setError(err.message);
     } finally {
