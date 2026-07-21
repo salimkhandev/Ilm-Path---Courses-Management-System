@@ -58,8 +58,17 @@ export default function AdminDashboard() {
       });
 
       if (!res.ok) {
-        const d = await res.json();
-        throw new Error(d.error || 'Failed to update payment status');
+        let errorMsg = 'Failed to update payment status';
+        try {
+          const text = await res.text();
+          if (text) {
+            const d = JSON.parse(text);
+            if (d.error) errorMsg = d.error;
+          }
+        } catch (e) {
+          errorMsg = `Server error: ${res.status} ${res.statusText}`;
+        }
+        throw new Error(errorMsg);
       }
 
       await fetchPayments();

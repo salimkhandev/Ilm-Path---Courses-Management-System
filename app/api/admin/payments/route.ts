@@ -26,9 +26,18 @@ export async function GET(req: NextRequest) {
         console.error('Failed to get presigned URL for', p.screenshotKey, err);
       }
       return {
-        ...p,
         id: p._id.toString(),
         userId: p.userId.toString(),
+        courseId: p.courseId ? p.courseId.toString() : null,
+        name: p.name,
+        email: p.email,
+        phone: p.phone,
+        paymentMethod: p.paymentMethod,
+        transactionId: p.transactionId,
+        amount: p.amount,
+        status: p.status,
+        submittedAt: p.submittedAt,
+        adminNote: p.adminNote,
         screenshotUrl,
       };
     })
