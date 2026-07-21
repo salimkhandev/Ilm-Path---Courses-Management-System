@@ -1,5 +1,5 @@
 // IlmPath Service Worker
-const CACHE_VERSION = 'V11';
+const CACHE_VERSION = 'V12';
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`;
 
 // Static shell pages to pre-cache on install — these must work fully offline
@@ -40,18 +40,7 @@ function isImmutableAsset(url) {
   return url.includes('/_next/static/');
 }
 
-// Public marketing pages — cheap to serve stale, background-update
-function isStaticPage(url) {
-  const { pathname } = new URL(url);
-  return (
-    pathname === '/' ||
-    pathname.startsWith('/about') ||
-    pathname.startsWith('/privacy') ||
-    pathname.startsWith('/terms') ||
-    pathname.startsWith('/refund') ||
-    pathname.startsWith('/downloads') // Cache the offline videos page
-  );
-}
+
 
 // ─── Install ─────────────────────────────────────────────────────────────────
 
@@ -112,30 +101,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── Strategy 2: Stale-while-revalidate (static marketing pages) ──────────
-  // Serve cached copy immediately for speed; update cache silently in background.
-  if (isStaticPage(url)) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(async (cache) => {
-        const cached = await cache.match(request);
-
-        const fetchPromise = fetch(request)
-          .then((res) => {
-            if (res && res.status === 200 && res.type === 'basic') {
-              cache.put(request, res.clone()).catch(() => {});
-            }
-            return res;
-          })
-          .catch(() => null);
-
-        // Serve stale immediately; fall through to network if no cache yet
-        return cached || fetchPromise || offlineHtmlFallback();
-      })
-    );
-    return;
-  }
-
-  // ── Strategy 3: Network-first (dynamic student pages, _next/image, etc.) ──
+  // ── Strategy 2: Network-first (dynamic student pages, _next/image, etc.) ──
   // Always try the network; only fall back to cache when offline.
   event.respondWith(
     fetch(request)
