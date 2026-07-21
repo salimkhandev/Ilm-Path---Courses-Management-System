@@ -1,5 +1,5 @@
 // IlmPath Service Worker
-const CACHE_VERSION = 'V4';
+const CACHE_VERSION = 'V5';
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`;
 
 // Static shell pages to pre-cache on install
@@ -38,7 +38,8 @@ function isStaticPage(url) {
     pathname.startsWith('/about') ||
     pathname.startsWith('/privacy') ||
     pathname.startsWith('/terms') ||
-    pathname.startsWith('/refund')
+    pathname.startsWith('/refund') ||
+    pathname.startsWith('/downloads') // Cache the offline videos page
   );
 }
 

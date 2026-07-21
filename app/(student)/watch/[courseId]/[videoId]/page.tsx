@@ -211,10 +211,10 @@ export default function WatchVideoPage() {
       </header>
 
       {/* Main Container */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', flex: 1, minHeight: 0 }}>
+      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
         
         {/* Left Side: Video Player & Description */}
-        <div style={{ padding: '2rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="flex-1 p-4 lg:p-8 overflow-y-auto flex flex-col gap-6">
           
           {/* Error Message */}
           {error && <div className="alert-error">{error}</div>}
@@ -268,7 +268,7 @@ export default function WatchVideoPage() {
         </div>
 
         {/* Right Side: Playlist Sidebar */}
-        <div style={{ borderLeft: '1px solid var(--surface-2)', background: 'var(--surface-1)', overflowY: 'auto', padding: '1.25rem 0' }}>
+        <div className="w-full lg:w-[300px] lg:border-l border-t lg:border-t-0 border-surface-2 bg-surface-1 overflow-y-auto py-5 shrink-0">
           <h3 className="px-4 text-xs font-bold text-muted uppercase tracking-wider mb-3">
             Course Videos
           </h3>
