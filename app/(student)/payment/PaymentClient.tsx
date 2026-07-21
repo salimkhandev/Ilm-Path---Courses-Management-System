@@ -58,6 +58,11 @@ export default function PaymentClient() {
       return;
     }
 
+    if (file.size > 10 * 1024 * 1024) {
+      setError('File is too large. Please select an image smaller than 10MB.');
+      return;
+    }
+
     if (!agreed) {
       setError('You must agree to the Terms & Conditions and Refund Policy.');
       return;

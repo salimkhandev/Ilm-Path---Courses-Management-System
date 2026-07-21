@@ -85,6 +85,11 @@ export default function EditCoursePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 10 * 1024 * 1024) {
+      setError('File is too large. Please select an image smaller than 10MB.');
+      return;
+    }
+
     const compressedBlob = await compressImage(file, 800, 800, 0.7);
 
     setError('');
