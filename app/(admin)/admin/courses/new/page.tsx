@@ -11,6 +11,7 @@ export default function NewCoursePage() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [price, setPrice] = useState(5000);
   const [file, setFile] = useState<File | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -42,7 +43,8 @@ export default function NewCoursePage() {
       
       const { url, key } = await urlRes.json();
 
-      // 2. Upload file directly to Cloudflare R2
+      // 2. Compress then upload directly to Cloudflare R2
+      const compressedBlob = await compressImage(file, 800, 800, 0.7);
       const uploadRes = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': file.type },
@@ -55,7 +57,7 @@ export default function NewCoursePage() {
       const createRes = await fetch('/api/admin/courses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, thumbnailKey: key })
+        body: JSON.stringify({ title, description, price, thumbnailKey: key })
       });
 
       if (!createRes.ok) {
@@ -106,6 +108,19 @@ export default function NewCoursePage() {
             onChange={e => setDescription(e.target.value)}
             style={{ resize: 'vertical' }}
             required 
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Enrollment Price (PKR)</label>
+          <input
+            className="input"
+            type="number"
+            min={1}
+            placeholder="e.g. 5000"
+            value={price}
+            onChange={e => setPrice(Number(e.target.value))}
+            required
           />
         </div>
 

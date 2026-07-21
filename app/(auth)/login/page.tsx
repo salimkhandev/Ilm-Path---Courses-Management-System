@@ -30,8 +30,9 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/dashboard');
-    router.refresh();
+    // Use window.location.href to force a full page load through the proxy middleware,
+    // which will correctly route admins to /admin and students to /dashboard.
+    window.location.href = '/dashboard';
   }
 
   return (

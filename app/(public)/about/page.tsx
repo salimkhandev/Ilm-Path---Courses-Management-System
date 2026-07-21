@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'About — IlmPath',
-  description: 'Learn about IlmPath and how to contact us.',
+  title: 'About — PashtoSkills',
+  description: 'Learn about PashtoSkills and how to contact us.',
 };
 
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL ?? 'support@ilmpath.com';
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL ?? 'support@pashtoskills.com';
 
 export default function AboutPage() {
   return (
@@ -17,11 +17,11 @@ export default function AboutPage() {
         </Link>
       </div>
       <h1 style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 700, marginBottom: '1rem' }}>
-        About IlmPath
+        About PashtoSkills
       </h1>
 
       <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '1.5rem', fontSize: '1.05rem' }}>
-        IlmPath (<em>Ilm</em> — Arabic for knowledge) is a Pakistani online learning platform
+        PashtoSkills (<em>Ilm</em> — Arabic for knowledge) is a Pakistani online learning platform
         dedicated to making high-quality education accessible and affordable.
       </p>
 

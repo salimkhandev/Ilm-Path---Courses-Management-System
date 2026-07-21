@@ -94,7 +94,7 @@ const PWAInstallButton = () => {
                             I
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                            <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Install IlmPath</span>
+                            <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Install PashtoSkills</span>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                 {isIOS ? "Tap Share → Add to Home Screen" : "Learn offline, no browser needed"}
                             </span>

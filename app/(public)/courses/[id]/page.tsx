@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import Course from '@/lib/models/Course';
 import { getPresignedGetUrl } from '@/lib/r2';
+import { Video, Clock, Lock as LockIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   await connectDB();
   const course = await Course.findById(id, { title: 1, description: 1 }).lean();
   if (!course) return { title: 'Course Not Found' };
-  return { title: `${course.title} — IlmPath`, description: course.description };
+  return { title: `${course.title} — PashtoSkills`, description: course.description };
 }
 
 export default async function CourseDetailPage({ params }: Props) {
@@ -41,98 +42,76 @@ export default async function CourseDetailPage({ params }: Props) {
   const totalDuration = videos.reduce((a, v) => a + v.duration, 0);
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '3rem 1.5rem' }}>
+    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
       {/* Back link */}
       <Link
         href="/courses"
-        style={{ color: 'var(--text-muted)', fontSize: '0.875rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', marginBottom: '2rem' }}
+        className="inline-flex items-center gap-1.5 text-sm text-slate-500 no-underline mb-8 hover:text-slate-400 transition-colors"
       >
         ← All courses
       </Link>
 
       {/* Hero */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '2rem', alignItems: 'start', marginBottom: '3rem', flexWrap: 'wrap' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-start mb-12">
         <div>
-          <h1 style={{ fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 700, marginBottom: '1rem', lineHeight: 1.2 }}>
+          <h1 className="text-2xl font-bold sm:text-3xl lg:text-4xl mb-4 leading-tight">
             {course.title}
           </h1>
-          <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '1.5rem' }}>
+          <p className="text-slate-400 leading-relaxed mb-6">
             {course.description}
           </p>
-          <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '2rem' }}>
-            <span>📹 {videos.length} videos</span>
-            <span>⏱ {formatDuration(totalDuration)} total</span>
+          <div className="flex gap-6 text-slate-500 text-sm mb-8">
+            <span className="flex items-center gap-2">
+              <Video className="w-4 h-4" />
+              {videos.length} videos
+            </span>
+            <span className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              {formatDuration(totalDuration)} total
+            </span>
           </div>
           <Link
             href="/register"
-            style={{
-              display: 'inline-flex',
-              padding: '0.75rem 1.75rem',
-              background: 'var(--brand-500)',
-              color: '#0f172a',
-              fontWeight: 700,
-              borderRadius: '0.5rem',
-              textDecoration: 'none',
-              fontSize: '0.95rem',
-            }}
+            className="inline-flex px-7 py-3 bg-amber-500 text-slate-950 font-bold rounded-lg no-underline text-base hover:bg-amber-600 transition-colors"
           >
             Enroll — create free account
           </Link>
         </div>
 
         {thumbnailUrl && (
-          <div style={{ width: '220px', flexShrink: 0 }}>
+          <div className="w-full lg:w-56 flex-shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={thumbnailUrl}
               alt={course.title}
-              style={{ width: '100%', borderRadius: '0.75rem', border: '1px solid var(--surface-2)' }}
+              className="w-full rounded-lg border border-slate-700"
             />
           </div>
         )}
       </div>
 
       {/* Video list */}
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>
+      <h2 className="text-xl font-semibold mb-4">
         Course Content
       </h2>
-      <div style={{ border: '1px solid var(--surface-2)', borderRadius: '0.75rem', overflow: 'hidden' }}>
+      <div className="border border-slate-700 rounded-lg overflow-hidden">
         {videos.map((video, i) => (
           <div
             key={video._id.toString()}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1rem',
-              padding: '0.875rem 1.25rem',
-              borderBottom: i < videos.length - 1 ? '1px solid var(--surface-2)' : 'none',
-              background: 'var(--surface-1)',
-            }}
+            className={`flex items-center gap-4 px-5 py-3.5 bg-slate-900 ${
+              i < videos.length - 1 ? 'border-b border-slate-700' : ''
+            }`}
           >
-            <span
-              style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                background: 'var(--surface-2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.75rem',
-                color: 'var(--text-muted)',
-                flexShrink: 0,
-                fontWeight: 600,
-              }}
-            >
+            <span className="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-xs text-slate-500 flex-shrink-0 font-semibold">
               {video.order}
             </span>
-            <span style={{ flex: 1, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+            <span className="flex-1 text-sm text-slate-100">
               {video.title}
             </span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', flexShrink: 0 }}>
+            <span className="text-xs text-slate-500 flex-shrink-0">
               {formatDuration(video.duration)}
             </span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>🔒</span>
+            <LockIcon className="w-4 h-4 text-slate-500" />
           </div>
         ))}
       </div>

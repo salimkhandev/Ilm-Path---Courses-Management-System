@@ -1,16 +1,24 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { compressImage } from '@/lib/image';
 
-const PRICE = 5000; // Hardcoded for v1
+interface CourseOption {
+  id: string;
+  title: string;
+  price: number;
+}
 
 export default function PaymentClient() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const [courses, setCourses] = useState<CourseOption[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [coursesLoading, setCoursesLoading] = useState(true);
+
   const [method, setMethod] = useState('easypaisa');
   const [senderPhone, setSenderPhone] = useState('');
   const [transactionId, setTransactionId] = useState('');
@@ -20,9 +28,26 @@ export default function PaymentClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Load available courses so the student can pick which one they are paying for
+  useEffect(() => {
+    fetch('/api/courses/public')
+      .then(r => r.json())
+      .then((data: CourseOption[]) => {
+        setCourses(data);
+        if (data.length > 0) setSelectedCourseId(data[0].id);
+      })
+      .catch(() => {})
+      .finally(() => setCoursesLoading(false));
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+
+    if (!selectedCourseId) {
+      setError('Please select a course to enroll in.');
+      return;
+    }
 
     if (!file) {
       setError('Please attach a screenshot of your payment.');
@@ -69,7 +94,8 @@ export default function PaymentClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: PRICE,
+          courseId: selectedCourseId,
+          amount: courses.find(c => c.id === selectedCourseId)?.price ?? 0,
           transactionId,
           senderPhone,
           paymentMethod: method,
@@ -96,9 +122,36 @@ export default function PaymentClient() {
   return (
     <div className="card">
       <h1 className="text-2xl font-bold mb-2">Complete Your Payment</h1>
-      <p className="text-sm text-secondary mb-6 line-height-relaxed">
-        1-year access to all courses is <strong>Rs. {PRICE}</strong>. 
-        Please transfer the amount using one of the methods below, then submit your proof of payment.
+
+      {/* Course selection */}
+      {coursesLoading ? (
+        <p className="text-sm text-muted mb-4">Loading courses...</p>
+      ) : courses.length === 0 ? (
+        <p className="text-sm text-secondary mb-4">No courses available yet. Please check back later.</p>
+      ) : (
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1.5">Select Course to Enroll</label>
+          <select
+            className="input"
+            value={selectedCourseId}
+            onChange={e => setSelectedCourseId(e.target.value)}
+            required
+          >
+            {courses.map(c => (
+              <option key={c.id} value={c.id}>
+                {c.title} — Rs. {c.price.toLocaleString()}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <p className="text-sm text-secondary mb-6">
+        {selectedCourseId && courses.find(c => c.id === selectedCourseId) ? (
+          <>Enrollment fee: <strong>Rs. {courses.find(c => c.id === selectedCourseId)!.price.toLocaleString()}</strong>. Transfer the amount below then submit your proof.</>
+        ) : (
+          <>Please select a course above to see the enrollment fee.</>
+        )}
       </p>
 
       {/* Payment Instructions */}
@@ -122,13 +175,13 @@ export default function PaymentClient() {
 
         <div className="text-sm text-secondary p-3 rounded bg-surface-2">
           {method === 'easypaisa' && (
-            <><strong>EasyPaisa:</strong> 0300-1234567<br/>Title: IlmPath Education</>
+            <><strong>EasyPaisa:</strong> 0300-1234567<br/>Title: PashtoSkills Education</>
           )}
           {method === 'jazzcash' && (
-            <><strong>JazzCash:</strong> 0300-1234567<br/>Title: IlmPath Education</>
+            <><strong>JazzCash:</strong> 0300-1234567<br/>Title: PashtoSkills Education</>
           )}
           {method === 'bank' && (
-            <><strong>Meezan Bank</strong><br/>Acc: 0123456789<br/>Title: IlmPath Education</>
+            <><strong>Meezan Bank</strong><br/>Acc: 0123456789<br/>Title: PashtoSkills Education</>
           )}
         </div>
       </div>

@@ -17,7 +17,14 @@ export default async function StudentDashboardPage() {
   const session = await getServerSession(authOptions);
   
   await connectDB();
-  const courses = await Course.find({}).sort({ createdAt: -1 }).lean();
+  
+  // Find the user to get their enrolled courses
+  const User = (await import('@/lib/models/User')).default;
+  const dbUser = await User.findOne({ email: session?.user?.email }).lean();
+  const enrolledIds = dbUser?.enrolledCourseIds || [];
+
+  // Fetch only enrolled courses
+  const courses = await Course.find({ _id: { $in: enrolledIds } }).sort({ createdAt: -1 }).lean();
 
   const coursesWithUrls = await Promise.all(
     courses.map(async (c) => ({
@@ -61,7 +68,10 @@ export default async function StudentDashboardPage() {
 
           {coursesWithUrls.length === 0 ? (
             <div className="card text-center py-12 text-secondary">
-              No courses are currently available. Check back later!
+              <p className="mb-4">You are not enrolled in any courses yet.</p>
+              <Link href="/courses" className="btn-primary" style={{ textDecoration: 'none' }}>
+                Browse Courses
+              </Link>
             </div>
           ) : (
             <div

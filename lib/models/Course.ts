@@ -12,8 +12,9 @@ export interface IVideo {
 export interface ICourse extends Document {
   title: string;
   description: string;
-  thumbnailKey: string;  // R2 object key — never a full URL
+  thumbnailKey: string;
   videos: IVideo[];
+  price: number;          // enrollment fee in PKR
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +35,7 @@ const CourseSchema = new Schema<ICourse>(
     title: { type: String, required: true, trim: true },
     description: { type: String, required: true },
     thumbnailKey: { type: String, required: true },
+    price: { type: Number, required: true, default: 5000 }, // PKR
     videos: { type: [VideoSchema], default: [] },
   },
   { timestamps: true }

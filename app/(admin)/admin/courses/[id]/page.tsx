@@ -43,6 +43,7 @@ export default function EditCoursePage() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [price, setPrice] = useState(5000);
   const [thumbnailKey, setThumbnailKey] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   
@@ -67,6 +68,7 @@ export default function EditCoursePage() {
         
         setTitle(data.title);
         setDescription(data.description);
+        setPrice(data.price ?? 5000);
         setThumbnailKey(data.thumbnailKey);
         setThumbnailUrl(data.thumbnailUrl || '');
         setVideos(data.videos || []);
@@ -209,6 +211,7 @@ export default function EditCoursePage() {
         body: JSON.stringify({
           title,
           description,
+          price,
           thumbnailKey,
           videos,
         }),
@@ -269,6 +272,18 @@ export default function EditCoursePage() {
               onChange={e => setDescription(e.target.value)}
               style={{ resize: 'vertical' }}
               required 
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Enrollment Price (PKR)</label>
+            <input
+              className="input"
+              type="number"
+              min={1}
+              value={price}
+              onChange={e => setPrice(Number(e.target.value))}
+              required
             />
           </div>
 

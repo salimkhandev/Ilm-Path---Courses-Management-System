@@ -10,52 +10,27 @@ const LINKS = [
 
 export default function Footer() {
   return (
-    <footer
-      style={{
-        marginTop: 'auto',
-        borderTop: '1px solid var(--surface-2)',
-        padding: '2.5rem 1.5rem',
-      }}
-    >
-      <div
-        style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '1.5rem',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
+    <footer className="mt-auto border-t border-slate-800 px-6 py-10 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-7xl flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p style={{ fontWeight: 700, color: 'var(--brand-500)', fontSize: '1.1rem' }}>
-            IlmPath
-          </p>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}>
-            Learn Without Limits
-          </p>
+          <p className="font-bold text-lg text-amber-500">PashtoSkills</p>
+          <p className="text-xs text-slate-500 mt-1">Learn Without Limits</p>
         </div>
 
-        <nav style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem' }}>
+        <nav className="flex flex-wrap gap-4 sm:gap-5">
           {LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              style={{
-                color: 'var(--text-muted)',
-                fontSize: '0.85rem',
-                textDecoration: 'none',
-                transition: 'color 0.15s',
-              }}
+              className="text-sm text-slate-500 no-underline hover:text-slate-400 transition-colors"
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-          &copy; {new Date().getFullYear()} IlmPath. All rights reserved.
+        <p className="text-xs text-slate-500">
+          &copy; {new Date().getFullYear()} PashtoSkills. All rights reserved.
         </p>
       </div>
     </footer>

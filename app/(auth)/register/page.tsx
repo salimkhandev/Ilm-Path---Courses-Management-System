@@ -53,9 +53,8 @@ export default function RegisterPage() {
       return;
     }
 
-    // Auto-redirect directly to payment page
-    router.push('/payment');
-    router.refresh();
+    // Auto-redirect directly to payment page using hard navigation
+    window.location.href = '/payment';
   }
 
   return (
@@ -69,7 +68,7 @@ export default function RegisterPage() {
         Create an account
       </h1>
       <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
-        Join IlmPath and start your learning journey
+        Join PashtoSkills and start your learning journey
       </p>
 
       {error && <div className="alert-error mb-4">{error}</div>}

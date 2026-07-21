@@ -64,13 +64,14 @@ export async function PUT(req: NextRequest) {
   await payment.save();
 
   if (status === 'approved') {
-    // Grant access for 1 year
+    // Grant access for 1 year and track which course was enrolled
     const expiry = new Date();
     expiry.setFullYear(expiry.getFullYear() + 1);
 
     await User.findByIdAndUpdate(payment.userId, {
       status: 'paid',
       accessExpiresAt: expiry,
+      $addToSet: { enrolledCourseIds: payment.courseId },
     });
   } else {
     // Rejected

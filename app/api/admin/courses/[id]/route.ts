@@ -34,6 +34,7 @@ export async function GET(
     id: course._id.toString(),
     title: course.title,
     description: course.description,
+    price: course.price,
     thumbnailKey: course.thumbnailKey,
     thumbnailUrl,
     videos: course.videos.map((v) => ({
@@ -62,9 +63,9 @@ export async function PUT(
   }
 
   const body = await req.json();
-  const { title, description, thumbnailKey, videos } = body;
+  const { title, description, price, thumbnailKey, videos } = body;
 
-  if (!title || !description || !thumbnailKey) {
+  if (!title || !description || !thumbnailKey || price === undefined) {
     return NextResponse.json({ error: 'Missing fields.' }, { status: 400 });
   }
 
@@ -94,6 +95,7 @@ export async function PUT(
 
   course.title = title;
   course.description = description;
+  course.price = Number(price);
   course.thumbnailKey = thumbnailKey;
   course.videos = parsedVideos as any;
 

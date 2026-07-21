@@ -1,32 +1,33 @@
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { Lock, Download, GraduationCap, Smartphone } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'IlmPath — Learn Without Limits',
+  title: 'PashtoSkills — Learn Online Skills in Pashto',
   description:
-    'Browse expert-taught courses, pay once, and stream or watch offline. IlmPath — premium learning for Pakistan.',
+    'Browse expert-taught online skills courses in Pashto, pay once, and stream or watch offline.',
 };
 
 const FEATURES = [
   {
-    icon: '🔒',
+    icon: <Lock className="w-10 h-10 text-amber-500" />,
     title: 'Secure Streaming',
     desc: 'Videos served via short-lived signed URLs. Nothing is ever permanently downloadable to your device.',
   },
   {
-    icon: '📴',
+    icon: <Download className="w-10 h-10 text-amber-500" />,
     title: 'Offline Access',
     desc: 'Cache any video securely in your browser for offline viewing — no internet required after download.',
   },
   {
-    icon: '🎓',
+    icon: <GraduationCap className="w-10 h-10 text-amber-500" />,
     title: 'Expert Courses',
     desc: 'Carefully crafted curriculum by experienced instructors. Learn at your own pace, any time.',
   },
   {
-    icon: '📱',
+    icon: <Smartphone className="w-10 h-10 text-amber-500" />,
     title: 'Any Device',
     desc: 'Installable PWA — works on Android, iOS, Windows, and desktop. No app store needed.',
   },
@@ -38,115 +39,37 @@ export default function HomePage() {
       <Navbar />
 
       {/* Hero */}
-      <section
-        style={{
-          minHeight: '92vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          padding: '5rem 1.5rem',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
+      <section className="min-h-[92vh] flex flex-col items-center justify-center text-center px-6 py-20 sm:px-8 lg:px-12 relative overflow-hidden">
         {/* Background glow */}
         <div
           aria-hidden
-          style={{
-            position: 'absolute',
-            top: '20%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '700px',
-            height: '400px',
-            background: 'radial-gradient(ellipse, rgba(245,158,11,0.12) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
+          className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-[radial-gradient(ellipse,rgba(245,158,11,0.12)_0%,transparent_70%)] pointer-events-none"
         />
 
-        <div style={{ position: 'relative', maxWidth: '760px' }}>
-          <span
-            style={{
-              display: 'inline-block',
-              background: 'rgba(245,158,11,0.12)',
-              border: '1px solid rgba(245,158,11,0.3)',
-              color: 'var(--brand-400)',
-              borderRadius: '9999px',
-              padding: '0.3rem 1rem',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              marginBottom: '1.75rem',
-            }}
-          >
-            Online Learning Platform
+        <div className="relative max-w-4xl mx-auto">
+          <span className="inline-block bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-full px-4 py-1 text-xs font-semibold tracking-widest uppercase mb-7">
+            Pashto Learning Platform
           </span>
 
-          <h1
-            style={{
-              fontSize: 'clamp(2.5rem, 6vw, 4rem)',
-              fontWeight: 800,
-              lineHeight: 1.1,
-              letterSpacing: '-0.03em',
-              color: 'var(--text-primary)',
-              marginBottom: '1.5rem',
-            }}
-          >
-            Learn Without{' '}
-            <span style={{ color: 'var(--brand-500)' }}>Limits</span>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight text-slate-100 mb-6">
+            Learn Online Skills in{' '}
+            <span className="text-amber-500">Pashto</span>
           </h1>
 
-          <p
-            style={{
-              fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.7,
-              marginBottom: '2.5rem',
-              maxWidth: '560px',
-              margin: '0 auto 2.5rem',
-            }}
-          >
-            Expert-taught courses you can stream online or watch offline. Pay once, learn for a
-            full year — on any device, anywhere in Pakistan.
+          <p className="text-base sm:text-lg lg:text-xl text-slate-400 leading-relaxed max-w-2xl mx-auto mb-10">
+            Master high-income skills with expert-taught courses in your native language. Stream online or watch offline — on any device.
           </p>
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/courses"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.875rem 2rem',
-                background: 'var(--brand-500)',
-                color: '#0f172a',
-                fontWeight: 700,
-                fontSize: '1rem',
-                borderRadius: '0.625rem',
-                textDecoration: 'none',
-                transition: 'background 0.15s, transform 0.15s',
-              }}
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-amber-500 text-slate-950 font-bold text-base rounded-xl no-underline hover:bg-amber-600 transition-colors"
             >
               Browse Courses →
             </Link>
             <Link
               href="/register"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '0.875rem 2rem',
-                background: 'var(--surface-1)',
-                border: '1px solid var(--surface-2)',
-                color: 'var(--text-primary)',
-                fontWeight: 600,
-                fontSize: '1rem',
-                borderRadius: '0.625rem',
-                textDecoration: 'none',
-                transition: 'border-color 0.15s',
-              }}
+              className="inline-flex items-center px-8 py-3.5 bg-slate-900 border border-slate-700 text-slate-100 font-semibold text-base rounded-xl no-underline hover:border-slate-600 transition-colors"
             >
               Create free account
             </Link>
@@ -155,49 +78,23 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section
-        style={{
-          padding: '5rem 1.5rem',
-          borderTop: '1px solid var(--surface-2)',
-          background: 'var(--surface-1)',
-        }}
-      >
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <h2
-            style={{
-              fontSize: 'clamp(1.6rem, 3vw, 2.25rem)',
-              fontWeight: 700,
-              textAlign: 'center',
-              marginBottom: '0.75rem',
-            }}
-          >
+      <section className="px-6 py-20 sm:px-8 lg:px-12 border-t border-slate-800 bg-slate-900">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-2">
             Everything you need to learn effectively
           </h2>
-          <p
-            style={{
-              textAlign: 'center',
-              color: 'var(--text-secondary)',
-              marginBottom: '3.5rem',
-              fontSize: '1.05rem',
-            }}
-          >
+          <p className="text-center text-slate-400 mb-14 text-base sm:text-lg">
             Built for Pakistan's internet conditions — low bandwidth, offline-first.
           </p>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '1.5rem',
-            }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {FEATURES.map((f) => (
-              <div key={f.title} className="card" style={{ padding: '1.75rem' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>{f.icon}</div>
-                <h3 style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '1.05rem' }}>
+              <div key={f.title} className="card p-7">
+                <div className="mb-4">{f.icon}</div>
+                <h3 className="font-semibold mb-2 text-base sm:text-lg">
                   {f.title}
                 </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                <p className="text-slate-400 text-sm leading-relaxed">
                   {f.desc}
                 </p>
               </div>
@@ -207,32 +104,17 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section style={{ padding: '5rem 1.5rem', textAlign: 'center' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <h2
-            style={{
-              fontSize: 'clamp(1.6rem, 3vw, 2.25rem)',
-              fontWeight: 700,
-              marginBottom: '1rem',
-            }}
-          >
+      <section className="px-6 py-20 sm:px-8 lg:px-12 text-center">
+        <div className="max-w-xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
             Ready to start learning?
           </h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.05rem' }}>
+          <p className="text-slate-400 mb-8 text-base sm:text-lg">
             Register for free and browse courses. Pay when you&apos;re ready.
           </p>
           <Link
             href="/register"
-            style={{
-              display: 'inline-flex',
-              padding: '0.875rem 2.5rem',
-              background: 'var(--brand-500)',
-              color: '#0f172a',
-              fontWeight: 700,
-              fontSize: '1rem',
-              borderRadius: '0.625rem',
-              textDecoration: 'none',
-            }}
+            className="inline-flex px-10 py-3.5 bg-amber-500 text-slate-950 font-bold text-base rounded-xl no-underline hover:bg-amber-600 transition-colors"
           >
             Get started — it&apos;s free
           </Link>

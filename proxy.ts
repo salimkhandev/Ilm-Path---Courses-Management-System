@@ -17,6 +17,9 @@ export async function proxy(req: NextRequest) {
   // --- Redirect logged-in users away from auth pages ---
   if (AUTH_ROUTES.some((r) => pathname.startsWith(r))) {
     if (token) {
+      if (token.role === 'admin') {
+        return NextResponse.redirect(new URL('/admin', req.url));
+      }
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
     return NextResponse.next();
@@ -32,6 +35,10 @@ export async function proxy(req: NextRequest) {
   // --- Student-protected routes ---
   if (STUDENT_ROUTES.some((r) => pathname.startsWith(r))) {
     if (!token) return NextResponse.redirect(new URL('/login', req.url));
+
+    if (token.role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', req.url));
+    }
 
     const { status, accessExpiresAt } = token;
 

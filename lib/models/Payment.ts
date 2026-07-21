@@ -5,6 +5,7 @@ export type PaymentMethod = 'JazzCash' | 'EasyPaisa' | 'BankTransfer' | 'Other';
 
 export interface IPayment extends Document {
   userId: mongoose.Types.ObjectId;
+  courseId: mongoose.Types.ObjectId; // which course this payment is for
   name: string;
   email: string;
   phone: string;
@@ -23,6 +24,7 @@ export interface IPayment extends Document {
 const PaymentSchema = new Schema<IPayment>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    courseId: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, lowercase: true, trim: true },
     phone: { type: String, required: true, trim: true },

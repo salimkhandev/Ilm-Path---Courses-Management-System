@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Refund Policy — IlmPath',
-  description: 'IlmPath refund policy — how to request a refund.',
+  title: 'Refund Policy — PashtoSkills',
+  description: 'PashtoSkills refund policy — how to request a refund.',
 };
 
-const SUPPORT = process.env.SUPPORT_EMAIL ?? 'support@ilmpath.com';
+const SUPPORT = process.env.SUPPORT_EMAIL ?? 'support@pashtoskills.com';
 
 export default function RefundPage() {
   return (

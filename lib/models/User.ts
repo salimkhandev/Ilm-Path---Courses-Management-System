@@ -9,6 +9,7 @@ export interface IUser extends Document {
   passwordHash: string;
   role: UserRole;
   status: UserStatus;
+  enrolledCourseIds: mongoose.Types.ObjectId[]; // courses student has paid for
   createdAt: Date;
   accessExpiresAt: Date | null;
 }
@@ -24,6 +25,7 @@ const UserSchema = new Schema<IUser>(
       enum: ['pending', 'paid', 'rejected', 'expired', 'revoked'],
       default: 'pending',
     },
+    enrolledCourseIds: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
     accessExpiresAt: { type: Date, default: null },
   },
   { timestamps: true }

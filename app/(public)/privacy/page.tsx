@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — IlmPath',
-  description: 'How IlmPath collects, uses, and protects your data.',
+  title: 'Privacy Policy — PashtoSkills',
+  description: 'How PashtoSkills collects, uses, and protects your data.',
 };
 
-const SUPPORT = process.env.SUPPORT_EMAIL ?? 'support@ilmpath.com';
+const SUPPORT = process.env.SUPPORT_EMAIL ?? 'support@pashtoskills.com';
 
 export default function PrivacyPage() {
   return (
@@ -57,7 +57,7 @@ export default function PrivacyPage() {
             3. Who Can See Your Data
           </h2>
           <p>
-            Only IlmPath administrators can view your name, email, phone, and payment screenshots
+            Only PashtoSkills administrators can view your name, email, phone, and payment screenshots
             for the purpose of verifying your payment. We do not sell or share your data with
             any third party.
           </p>

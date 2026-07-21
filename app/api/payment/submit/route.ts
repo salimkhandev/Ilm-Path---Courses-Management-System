@@ -15,9 +15,9 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { amount, transactionId, senderPhone, paymentMethod, screenshotKey } = body;
+  const { amount, transactionId, senderPhone, paymentMethod, screenshotKey, courseId } = body;
 
-  if (!amount || !transactionId || !senderPhone || !paymentMethod || !screenshotKey) {
+  if (!amount || !transactionId || !senderPhone || !paymentMethod || !screenshotKey || !courseId) {
     return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
   }
 
@@ -26,6 +26,7 @@ export async function POST(req: Request) {
   // Create payment record
   await Payment.create({
     userId: token.id,
+    courseId,
     name: token.name ?? '',
     email: token.email ?? '',
     phone: senderPhone,

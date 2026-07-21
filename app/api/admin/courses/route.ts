@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
     id: c._id.toString(),
     title: c.title,
     description: c.description,
+    price: c.price,
     thumbnailKey: c.thumbnailKey,
     videoCount: c.videos.length,
   }));
@@ -29,8 +30,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { title, description, thumbnailKey } = await req.json();
-  if (!title || !description || !thumbnailKey) {
+  const { title, description, price, thumbnailKey } = await req.json();
+  if (!title || !description || !thumbnailKey || price === undefined) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
   }
 
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
   const course = await Course.create({
     title,
     description,
+    price: Number(price),
     thumbnailKey,
     videos: [],
   });

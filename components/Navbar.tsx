@@ -18,127 +18,160 @@ export default function Navbar() {
   const isActive = (href: string) => pathname?.startsWith(href);
 
   return (
-    <header
-      style={{
-        background: 'rgba(15,23,42,0.85)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid var(--surface-2)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '0 1.5rem',
-          height: '64px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1.5rem',
-        }}
-      >
-        {/* Logo */}
-        <Link
-          href="/"
-          style={{
-            fontWeight: 700,
-            fontSize: '1.25rem',
-            color: 'var(--brand-500)',
-            textDecoration: 'none',
-            letterSpacing: '-0.02em',
-            flexShrink: 0,
-          }}
-        >
-          IlmPath
-        </Link>
+    <header className="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-md border-b border-slate-800">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-6">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="flex-shrink-0 font-bold text-xl text-amber-500 no-underline tracking-tight"
+          >
+            PashtoSkills
+          </Link>
 
-        {/* Desktop nav */}
-        <nav style={{ display: 'flex', gap: '0.25rem', flex: 1 }}>
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              style={{
-                padding: '0.375rem 0.75rem',
-                borderRadius: '0.375rem',
-                fontSize: '0.9rem',
-                fontWeight: 500,
-                textDecoration: 'none',
-                color: isActive(link.href) ? 'var(--brand-400)' : 'var(--text-secondary)',
-                background: isActive(link.href) ? 'rgba(245,158,11,0.08)' : 'transparent',
-                transition: 'color 0.15s, background 0.15s',
-              }}
+          {/* Desktop nav */}
+          <nav className="hidden md:flex gap-1 flex-1">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium no-underline transition-colors duration-150 ${
+                  isActive(link.href)
+                    ? 'text-amber-400 bg-amber-500/10'
+                    : 'text-slate-400 hover:text-slate-300'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Desktop auth actions */}
+          <div className="hidden md:flex gap-2 items-center flex-shrink-0">
+            {session ? (
+              <>
+                <Link
+                  href={session.user.role === 'admin' ? '/admin' : '/dashboard'}
+                  className="text-sm text-slate-400 no-underline px-3 py-1.5 rounded-md hover:text-slate-300 transition-colors"
+                >
+                  {session.user.role === 'admin' ? 'Admin Panel' : 'My Learning'}
+                </Link>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="text-sm text-slate-500 bg-none border-none cursor-pointer px-3 py-1.5 hover:text-slate-400 transition-colors"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm text-slate-400 no-underline px-3 py-1.5 rounded-md hover:text-slate-300 transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/register"
+                  className="text-sm font-semibold text-slate-950 bg-amber-500 no-underline px-4 py-1.5 rounded-md hover:bg-amber-600 transition-colors"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden p-2 rounded-md text-slate-400 hover:text-slate-300 hover:bg-slate-800 transition-colors"
+            aria-label="Toggle menu"
+          >
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Auth actions */}
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0 }}>
-          {session ? (
-            <>
-              <Link
-                href={session.user.role === 'admin' ? '/admin' : '/dashboard'}
-                style={{
-                  fontSize: '0.875rem',
-                  color: 'var(--text-secondary)',
-                  textDecoration: 'none',
-                  padding: '0.375rem 0.75rem',
-                  borderRadius: '0.375rem',
-                }}
-              >
-                {session.user.role === 'admin' ? 'Admin Panel' : 'My Learning'}
-              </Link>
-              <button
-                onClick={() => signOut({ callbackUrl: '/' })}
-                style={{
-                  fontSize: '0.875rem',
-                  color: 'var(--text-muted)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '0.375rem 0.75rem',
-                }}
-              >
-                Sign out
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                style={{
-                  fontSize: '0.875rem',
-                  color: 'var(--text-secondary)',
-                  textDecoration: 'none',
-                  padding: '0.375rem 0.75rem',
-                  borderRadius: '0.375rem',
-                }}
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: '#0f172a',
-                  background: 'var(--brand-500)',
-                  textDecoration: 'none',
-                  padding: '0.4375rem 1rem',
-                  borderRadius: '0.5rem',
-                  transition: 'background 0.15s',
-                }}
-              >
-                Get started
-              </Link>
-            </>
-          )}
+              {menuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
         </div>
+
+        {/* Mobile menu */}
+        {menuOpen && (
+          <div className="md:hidden py-4 border-t border-slate-800">
+            <nav className="flex flex-col gap-2 mb-4">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={`px-3 py-2 rounded-md text-sm font-medium no-underline transition-colors ${
+                    isActive(link.href)
+                      ? 'text-amber-400 bg-amber-500/10'
+                      : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+            <div className="flex flex-col gap-2 pt-4 border-t border-slate-800">
+              {session ? (
+                <>
+                  <Link
+                    href={session.user.role === 'admin' ? '/admin' : '/dashboard'}
+                    onClick={() => setMenuOpen(false)}
+                    className="text-sm text-slate-400 no-underline px-3 py-2 rounded-md hover:text-slate-300 hover:bg-slate-800 transition-colors"
+                  >
+                    {session.user.role === 'admin' ? 'Admin Panel' : 'My Learning'}
+                  </Link>
+                  <button
+                    onClick={() => {
+                      signOut({ callbackUrl: '/' });
+                      setMenuOpen(false);
+                    }}
+                    className="text-sm text-slate-500 bg-none border-none cursor-pointer px-3 py-2 rounded-md hover:text-slate-400 hover:bg-slate-800 transition-colors text-left"
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="text-sm text-slate-400 no-underline px-3 py-2 rounded-md hover:text-slate-300 hover:bg-slate-800 transition-colors"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setMenuOpen(false)}
+                    className="text-sm font-semibold text-slate-950 bg-amber-500 no-underline px-4 py-2 rounded-md hover:bg-amber-600 transition-colors text-center"
+                  >
+                    Get started
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
