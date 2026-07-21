@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getOfflineVideos, getOfflineVideoUrl, deleteOfflineVideo } from '@/lib/opfs';
+import { getOfflineVideos, getOfflineVideoUrl, deleteOfflineVideo, revokeOfflineVideoUrl } from '@/lib/opfs';
 
 interface OfflineVideoItem {
   videoId: string;
@@ -45,8 +45,11 @@ export default function OfflineDownloadsPage() {
 
   async function handleDelete(videoId: string) {
     if (!confirm('Delete this download from your offline storage?')) return;
+    const target = downloads.find((d) => d.videoId === videoId);
+    // Revoke the blob URL before deleting to free memory
+    if (target?.localUrl) revokeOfflineVideoUrl(target.localUrl);
     await deleteOfflineVideo(videoId);
-    if (activeVideo && downloads.find((d) => d.videoId === videoId)?.localUrl === activeVideo.url) {
+    if (activeVideo && target?.localUrl === activeVideo.url) {
       setActiveVideo(null);
     }
     loadDownloads();
@@ -57,21 +60,21 @@ export default function OfflineDownloadsPage() {
       
       <div className="flex justify-between items-center mb-6">
         <div>
-          <Link href="/dashboard" className="text-xs text-muted hover:underline mb-2 inline-block">
-            ← Back to Dashboard
+          <Link href="/" className="text-xs text-muted hover:underline mb-2 inline-block">
+            ← Home
           </Link>
           <h1 className="text-2xl font-bold">Offline Downloads</h1>
-          <p className="text-xs text-muted mt-1">Videos stored securely in your browser's private storage</p>
+          <p className="text-xs text-muted mt-1">Videos stored securely in your browser's private storage — playable without internet</p>
         </div>
-        <Link href="/dashboard" className="text-sm px-4 py-2 border rounded hover:bg-surface-2 transition-colors" style={{ color: 'var(--text-secondary)', borderColor: 'var(--surface-2)', textDecoration: 'none' }}>
-          ← Back to Dashboard
-        </Link>
       </div>
 
       {downloads.length === 0 ? (
         <div className="card text-center py-12 text-secondary">
-          No offline downloads found. 
-          Navigate to a course video and click &quot;Download for Offline&quot; to save videos here.
+          No offline downloads yet.
+          <br />
+          <span className="text-xs text-muted mt-2 block">
+            When you have internet, go to a course video and tap &quot;Download Offline&quot; to save it here.
+          </span>
         </div>
       ) : (
         <div className="flex flex-col gap-8">

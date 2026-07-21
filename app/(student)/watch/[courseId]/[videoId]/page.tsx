@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { isVideoDownloaded, downloadVideoToOPFS, getOfflineVideoUrl } from '@/lib/opfs';
+import { isVideoDownloaded, downloadVideoToOPFS, getOfflineVideoUrl, revokeOfflineVideoUrl } from '@/lib/opfs';
 
 interface VideoItem {
   id: string;
@@ -95,6 +95,13 @@ export default function WatchVideoPage() {
       }
     }
     resolveVideoUrl();
+    // Revoke any blob URL when videoId changes or component unmounts
+    return () => {
+      setVideoUrl(prev => {
+        if (prev?.startsWith('blob:')) revokeOfflineVideoUrl(prev);
+        return prev;
+      });
+    };
   }, [videoId]);
 
   // 3. Track Video Progress (Fire-and-forget)
@@ -165,7 +172,7 @@ export default function WatchVideoPage() {
       // it's also populated before the user actually goes offline.
       if ('caches' in window) {
         try {
-          const cache = await caches.open('app-cache-V6');
+          const cache = await caches.open('app-cache-V7');
           await cache.add('/downloads');
         } catch (e) {
           console.warn('Failed to pre-cache /downloads for offline viewing', e);

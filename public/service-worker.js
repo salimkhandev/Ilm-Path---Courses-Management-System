@@ -1,9 +1,17 @@
 // IlmPath Service Worker
-const CACHE_VERSION = 'V6';
+const CACHE_VERSION = 'V7';
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`;
 
-// Static shell pages to pre-cache on install
-const PRECACHE_URLS = ['/', '/manifest'];
+// Static shell pages to pre-cache on install — these must work fully offline
+const PRECACHE_URLS = [
+  '/',
+  '/manifest',
+  '/downloads',
+  '/about',
+  '/terms',
+  '/refund',
+  '/privacy',
+];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

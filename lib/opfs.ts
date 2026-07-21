@@ -99,9 +99,21 @@ export async function downloadVideoToOPFS(
 export async function getOfflineVideoUrl(videoId: string): Promise<string> {
   const root = await navigator.storage.getDirectory();
   const filename = `${videoId}.mp4`;
-  const fileHandle = await root.getFileHandle(filename);
-  const file = await fileHandle.getFile();
-  return URL.createObjectURL(file);
+  try {
+    const fileHandle = await root.getFileHandle(filename);
+    const file = await fileHandle.getFile();
+    return URL.createObjectURL(file);
+  } catch {
+    // File handle not found — metadata may be stale; clean it up
+    const list = getMetadataList();
+    saveMetadataList(list.filter((v) => v.videoId !== videoId));
+    throw new Error(`Offline video not found in storage: ${videoId}`);
+  }
+}
+
+/** Revoke an Object URL created by getOfflineVideoUrl to free memory */
+export function revokeOfflineVideoUrl(url: string): void {
+  if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
 }
 
 /** Delete a video file from OPFS and clean up metadata */
