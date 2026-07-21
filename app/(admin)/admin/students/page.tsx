@@ -12,6 +12,14 @@ interface Student {
   accessExpiresAt: string | null;
 }
 
+const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
+  paid:     { bg: 'rgba(34,197,94,0.12)',  color: '#16a34a' },
+  revoked:  { bg: 'rgba(239,68,68,0.12)',  color: '#dc2626' },
+  rejected: { bg: 'rgba(239,68,68,0.12)',  color: '#dc2626' },
+  pending:  { bg: 'var(--surface-2)',       color: 'var(--text-secondary)' },
+  expired:  { bg: 'rgba(245,158,11,0.12)', color: '#d97706' },
+};
+
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,91 +38,101 @@ export default function StudentsPage() {
 
   async function handleRevoke(studentId: string) {
     if (!confirm("Are you sure you want to revoke this student's access?")) return;
-    
     try {
       const res = await fetch(`/api/admin/students/${studentId}/revoke`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed to revoke access');
-      
-      setStudents(prev => 
-        prev.map(s => s.id === studentId ? { ...s, status: 'revoked' } : s)
-      );
+      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, status: 'revoked' } : s));
     } catch (err: any) {
       alert(err.message);
     }
   }
 
-  if (loading) return <div className="text-center p-10"><span className="spinner" /></div>;
+  if (loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+      <span className="spinner" />
+    </div>
+  );
   if (error) return <div className="alert-error">{error}</div>;
 
   return (
-    <div className="card">
-      <h1 className="text-2xl font-bold mb-6">Student Management</h1>
-
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid var(--surface-2)', textAlign: 'left', color: 'var(--text-secondary)' }}>
-              <th className="pb-3 pr-4">Student Name</th>
-              <th className="pb-3 pr-4">Email</th>
-              <th className="pb-3 pr-4">Enrolled Courses</th>
-              <th className="pb-3 pr-4">Status</th>
-              <th className="pb-3 pr-4">Access Expiry</th>
-              <th className="pb-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {students.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-8 text-center text-secondary">No students registered yet.</td>
-              </tr>
-            ) : (
-              students.map(s => (
-                <tr key={s.id} style={{ borderBottom: '1px solid var(--surface-2)' }}>
-                  <td className="py-4 pr-4 font-medium">{s.name}</td>
-                  <td className="py-4 pr-4 text-secondary">{s.email}</td>
-                  <td className="py-4 pr-4 text-secondary">
-                    {s.enrolledCourses.length > 0 ? (
-                      s.enrolledCourses.map(c => c.title).join(', ')
-                    ) : '-'}
-                  </td>
-                  <td className="py-4 pr-4">
-                    <span style={{ 
-                      padding: '0.2rem 0.5rem', 
-                      borderRadius: '9999px', 
-                      fontSize: '0.75rem', 
-                      fontWeight: 600,
-                      background: 
-                        s.status === 'paid' ? 'rgba(34, 197, 94, 0.15)' : 
-                        s.status === 'revoked' || s.status === 'rejected' ? 'rgba(239, 68, 68, 0.15)' : 
-                        'var(--surface-2)',
-                      color: 
-                        s.status === 'paid' ? '#16a34a' : 
-                        s.status === 'revoked' || s.status === 'rejected' ? '#dc2626' : 
-                        'var(--text-secondary)'
-                    }}>
-                      {s.status.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="py-4 pr-4 text-secondary">
-                    {s.accessExpiresAt ? new Date(s.accessExpiresAt).toLocaleDateString() : '-'}
-                  </td>
-                  <td className="py-4">
-                    {s.status === 'paid' && (
-                      <button 
-                        onClick={() => handleRevoke(s.id)}
-                        className="text-xs font-medium px-3 py-1 rounded bg-surface-2 hover:bg-surface-3 transition-colors"
-                        style={{ color: '#dc2626' }}
-                      >
-                        Revoke Access
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <h1 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', fontWeight: 700 }}>
+          Student Management
+        </h1>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          {students.length} student{students.length !== 1 ? 's' : ''}
+        </span>
       </div>
+
+      {students.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '3rem 1.5rem', color: 'var(--text-secondary)' }}>
+          No students registered yet.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+          {students.map(s => {
+            const st = STATUS_STYLE[s.status] ?? STATUS_STYLE.pending;
+            return (
+              <div key={s.id} className="card" style={{ padding: 'clamp(0.875rem, 3vw, 1.25rem)' }}>
+                {/* Top row: name + badge */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.6rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{s.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.1rem', wordBreak: 'break-all' }}>
+                      {s.email}
+                    </div>
+                  </div>
+                  <span style={{
+                    background: st.bg, color: st.color,
+                    fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.06em',
+                    padding: '0.2rem 0.6rem', borderRadius: '9999px',
+                    whiteSpace: 'nowrap', textTransform: 'uppercase', flexShrink: 0,
+                  }}>
+                    {s.status}
+                  </span>
+                </div>
+
+                {/* Info row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.35rem 1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>COURSES</span><br />
+                    {s.enrolledCourses.length > 0
+                      ? s.enrolledCourses.map(c => c.title).join(', ')
+                      : <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>EXPIRES</span><br />
+                    {s.accessExpiresAt ? new Date(s.accessExpiresAt).toLocaleDateString() : '—'}
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>JOINED</span><br />
+                    {new Date(s.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                {s.status === 'paid' && (
+                  <button
+                    onClick={() => handleRevoke(s.id)}
+                    style={{
+                      fontSize: '0.78rem', fontWeight: 600,
+                      padding: '0.4rem 0.85rem',
+                      borderRadius: '0.4rem',
+                      background: 'rgba(239,68,68,0.1)',
+                      color: '#dc2626',
+                      border: '1px solid rgba(239,68,68,0.25)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Revoke Access
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

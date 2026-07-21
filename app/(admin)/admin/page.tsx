@@ -17,22 +17,24 @@ interface PaymentItem {
   adminNote?: string;
 }
 
+const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
+  approved: { bg: 'rgba(34,197,94,0.12)', color: '#22c55e' },
+  rejected: { bg: 'rgba(239,68,68,0.12)', color: '#ef6868' },
+  pending:  { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
+};
+
 export default function AdminDashboard() {
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
-  // Note inputs per payment
   const [notes, setNotes] = useState<Record<string, string>>({});
-  // Process states
   const [processing, setProcessing] = useState<Record<string, boolean>>({});
 
   async function fetchPayments() {
     try {
       const res = await fetch('/api/admin/payments');
       if (!res.ok) throw new Error('Failed to load payments.');
-      const data = await res.json();
-      setPayments(data);
+      setPayments(await res.json());
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -40,9 +42,7 @@ export default function AdminDashboard() {
     }
   }
 
-  useEffect(() => {
-    fetchPayments();
-  }, []);
+  useEffect(() => { fetchPayments(); }, []);
 
   async function handleReview(paymentId: string, status: 'approved' | 'rejected') {
     setProcessing(prev => ({ ...prev, [paymentId]: true }));
@@ -50,27 +50,13 @@ export default function AdminDashboard() {
       const res = await fetch('/api/admin/payments', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paymentId,
-          status,
-          adminNote: notes[paymentId] || ''
-        })
+        body: JSON.stringify({ paymentId, status, adminNote: notes[paymentId] || '' }),
       });
-
       if (!res.ok) {
-        let errorMsg = 'Failed to update payment status';
-        try {
-          const text = await res.text();
-          if (text) {
-            const d = JSON.parse(text);
-            if (d.error) errorMsg = d.error;
-          }
-        } catch (e) {
-          errorMsg = `Server error: ${res.status} ${res.statusText}`;
-        }
-        throw new Error(errorMsg);
+        let msg = 'Failed to update payment status';
+        try { const d = JSON.parse(await res.text()); if (d.error) msg = d.error; } catch {}
+        throw new Error(msg);
       }
-
       await fetchPayments();
     } catch (err: any) {
       alert(err.message);
@@ -79,18 +65,24 @@ export default function AdminDashboard() {
     }
   }
 
-  if (loading) return <div className="text-center py-10">Loading payments...</div>;
+  if (loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+      <span className="spinner" />
+    </div>
+  );
   if (error) return <div className="alert-error">{error}</div>;
 
   return (
     <div>
-      {/* Admin Nav */}
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-        <h1 className="text-2xl font-bold">Admin Panel — Payment Approvals</h1>
+      {/* Page header */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <h1 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', fontWeight: 700 }}>
+          Payment Approvals
+        </h1>
         <Link
           href="/admin/courses"
-          className="btn-primary text-sm px-4 py-2"
-          style={{ textDecoration: 'none' }}
+          className="btn-primary"
+          style={{ textDecoration: 'none', fontSize: '0.8rem', padding: '0.5rem 1rem' }}
         >
           📚 Manage Courses
         </Link>
@@ -99,103 +91,120 @@ export default function AdminDashboard() {
       {payments.length === 0 ? (
         <p className="text-secondary">No payment submissions found.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {payments.map((p) => (
-            <div key={p.id} className="card" style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-                
-                {/* Text Info */}
-                <div>
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-base">{p.name}</h3>
-                      <p className="text-xs text-muted">{p.email}</p>
-                    </div>
-                    <span 
-                      className={`text-xs px-2.5 py-0.5 rounded-full font-medium uppercase`}
-                      style={{ 
-                        background: p.status === 'approved' ? 'rgba(34,197,94,0.1)' : p.status === 'rejected' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)',
-                        color: p.status === 'approved' ? '#22c55e' : p.status === 'rejected' ? '#ef6868' : '#f59e0b'
-                      }}
-                    >
-                      {p.status}
-                    </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {payments.map((p) => {
+            const st = STATUS_STYLE[p.status] ?? STATUS_STYLE.pending;
+            return (
+              <div key={p.id} className="card" style={{ padding: 'clamp(1rem, 3vw, 1.5rem)' }}>
+                {/* Name + status badge */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{p.name}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.15rem', wordBreak: 'break-all' }}>{p.email}</div>
                   </div>
+                  <span style={{
+                    background: st.bg, color: st.color,
+                    fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.05em',
+                    padding: '0.25rem 0.65rem', borderRadius: '9999px',
+                    whiteSpace: 'nowrap', textTransform: 'uppercase',
+                    flexShrink: 0,
+                  }}>
+                    {p.status}
+                  </span>
+                </div>
 
-                  <div className="text-sm flex flex-col gap-1.5 text-secondary">
+                {/* Two-column grid on md+, single col on mobile */}
+                <div className="payment-card-grid">
+                  {/* Details column */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                     <div><strong>Method:</strong> {p.paymentMethod}</div>
                     <div><strong>TID:</strong> {p.transactionId}</div>
-                    <div><strong>Amount:</strong> Rs. {p.amount}</div>
+                    <div><strong>Amount:</strong> Rs. {p.amount.toLocaleString()}</div>
                     <div><strong>Phone:</strong> {p.phone}</div>
-                    <div><strong>Submitted:</strong> {new Date(p.submittedAt).toLocaleString()}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      {new Date(p.submittedAt).toLocaleString()}
+                    </div>
+
+                    {/* Admin note display */}
+                    {p.status !== 'pending' && p.adminNote && (
+                      <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '0.4rem', background: 'var(--surface-2)', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        <strong>Admin Note:</strong> {p.adminNote}
+                      </div>
+                    )}
+
+                    {/* Approve / Reject actions */}
+                    {p.status === 'pending' && (
+                      <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <input
+                          className="input"
+                          style={{ fontSize: '0.8rem', padding: '0.5rem 0.75rem' }}
+                          placeholder="Admin note (optional)"
+                          value={notes[p.id] || ''}
+                          onChange={e => setNotes(prev => ({ ...prev, [p.id]: e.target.value }))}
+                        />
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            className="btn-primary"
+                            style={{ flex: 1, background: '#22c55e', color: '#0f172a', fontSize: '0.85rem', padding: '0.55rem' }}
+                            onClick={() => handleReview(p.id, 'approved')}
+                            disabled={processing[p.id]}
+                          >
+                            {processing[p.id] ? '...' : '✓ Approve'}
+                          </button>
+                          <button
+                            className="btn-primary"
+                            style={{ flex: 1, background: '#ef4444', color: '#fff', fontSize: '0.85rem', padding: '0.55rem' }}
+                            onClick={() => handleReview(p.id, 'rejected')}
+                            disabled={processing[p.id]}
+                          >
+                            {processing[p.id] ? '...' : '✕ Reject'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Actions (if pending) */}
-                  {p.status === 'pending' && (
-                    <div className="mt-4 flex flex-col gap-2">
-                      <input 
-                        className="input text-sm"
-                        placeholder="Admin note (e.g. rejection reason)" 
-                        value={notes[p.id] || ''}
-                        onChange={e => setNotes(prev => ({ ...prev, [p.id]: e.target.value }))}
+                  {/* Screenshot column */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Uploaded Screenshot:</span>
+                    {p.screenshotUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={p.screenshotUrl}
+                        alt="Payment screenshot"
+                        style={{
+                          width: '100%',
+                          maxHeight: '260px',
+                          objectFit: 'contain',
+                          borderRadius: '0.5rem',
+                          border: '1px solid var(--surface-2)',
+                        }}
                       />
-                      <div className="flex gap-2">
-                        <button 
-                          className="btn-primary" 
-                          style={{ flex: 1, background: '#22c55e', color: '#0f172a' }}
-                          onClick={() => handleReview(p.id, 'approved')}
-                          disabled={processing[p.id]}
-                        >
-                          Approve
-                        </button>
-                        <button 
-                          className="btn-primary" 
-                          style={{ flex: 1, background: '#ef4444', color: '#fff' }}
-                          onClick={() => handleReview(p.id, 'rejected')}
-                          disabled={processing[p.id]}
-                        >
-                          Reject
-                        </button>
+                    ) : (
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', padding: '1rem', background: 'var(--surface-2)', borderRadius: '0.5rem', textAlign: 'center' }}>
+                        No screenshot
                       </div>
-                    </div>
-                  )}
-
-                  {/* Admin note (if reviewed) */}
-                  {p.status !== 'pending' && p.adminNote && (
-                    <div className="mt-3 text-xs p-2.5 rounded bg-surface-2 text-muted">
-                      <strong>Admin Note:</strong> {p.adminNote}
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-
-                {/* Screenshot view */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <span className="text-xs font-semibold text-secondary">Uploaded Screenshot:</span>
-                  {p.screenshotUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img 
-                      src={p.screenshotUrl} 
-                      alt="Payment screenshot" 
-                      style={{ 
-                        maxWidth: '100%', 
-                        maxHeight: '280px', 
-                        objectFit: 'contain', 
-                        borderRadius: '0.5rem',
-                        border: '1px solid var(--surface-2)' 
-                      }} 
-                    />
-                  ) : (
-                    <div className="text-xs text-muted p-4 bg-surface-2 rounded text-center">
-                      No screenshot link or failed to load.
-                    </div>
-                  )}
-                </div>
-
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+
+      <style>{`
+        .payment-card-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 1rem;
+        }
+        @media (min-width: 600px) {
+          .payment-card-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+      `}</style>
     </div>
   );
 }

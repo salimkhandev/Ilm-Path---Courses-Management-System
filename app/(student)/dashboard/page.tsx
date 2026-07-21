@@ -40,8 +40,9 @@ export default async function StudentDashboardPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--surface-0)' }}>
-      <main style={{ flex: 1, padding: '3rem 1.5rem' }}>
+      <main style={{ flex: 1, padding: 'clamp(1.5rem, 4vw, 3rem) clamp(0.75rem, 3vw, 1.5rem)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+
 
           <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
             <div>
