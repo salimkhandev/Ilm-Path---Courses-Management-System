@@ -43,6 +43,6 @@ export async function compressImage(file: File, maxWidth = 800, maxHeight = 800,
       );
     };
     
-    img.onerror = (err) => reject(err);
+    img.onerror = () => reject(new Error('Failed to load image for compression. Please select a valid image file.'));
   });
 }

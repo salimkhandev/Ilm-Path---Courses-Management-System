@@ -111,13 +111,14 @@ export default function PaymentClient() {
       window.location.href = '/payment/pending';
       
     } catch (err: any) {
-      setError(err.message || 'An error occurred during submission.');
+      console.error('Payment submission error:', err);
+      setError(err?.message || 'An error occurred during submission.');
       setLoading(false);
     }
   }
 
   return (
-    <div className="card">
+    <div className="card max-w-xl mx-auto w-full">
       <h1 className="text-2xl font-bold mb-2">Complete Your Payment</h1>
 
       {/* Course selection */}
