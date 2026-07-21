@@ -29,7 +29,7 @@ export default function StudentsPage() {
   }, []);
 
   async function handleRevoke(studentId: string) {
-    if (!confirm('Are you sure you want to revoke this student\\'s access?')) return;
+    if (!confirm("Are you sure you want to revoke this student's access?")) return;
     
     try {
       const res = await fetch(`/api/admin/students/${studentId}/revoke`, { method: 'POST' });
