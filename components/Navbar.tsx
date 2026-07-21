@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
+import { useNetwork } from '@/hooks/useNetwork';
 
 const NAV_LINKS = [
   { href: '/courses', label: 'Courses' },
@@ -14,8 +15,14 @@ export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isOnline = useNetwork();
 
   const isActive = (href: string) => pathname?.startsWith(href);
+
+  // Determine which links to show based on network status
+  const visibleNavLinks = isOnline 
+    ? NAV_LINKS 
+    : NAV_LINKS.filter(link => !link.href.startsWith('/courses'));
 
   return (
     <header className="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-md border-b border-slate-800">
@@ -31,7 +38,7 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex gap-1 flex-1">
-            {NAV_LINKS.map((link) => (
+            {visibleNavLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -46,9 +53,16 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Desktop auth actions */}
+          {/* Desktop auth actions / offline actions */}
           <div className="hidden md:flex gap-2 items-center flex-shrink-0">
-            {session ? (
+            {!isOnline ? (
+              <Link
+                href="/downloads"
+                className="text-sm font-semibold text-slate-950 bg-amber-500 no-underline px-4 py-1.5 rounded-md hover:bg-amber-600 transition-colors"
+              >
+                Offline Downloads
+              </Link>
+            ) : session ? (
               <>
                 <Link
                   href={session.user.role === 'admin' ? '/admin' : '/dashboard'}
@@ -116,7 +130,7 @@ export default function Navbar() {
         {menuOpen && (
           <div className="md:hidden py-4 border-t border-slate-800">
             <nav className="flex flex-col gap-2 mb-4">
-              {NAV_LINKS.map((link) => (
+              {visibleNavLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -132,7 +146,15 @@ export default function Navbar() {
               ))}
             </nav>
             <div className="flex flex-col gap-2 pt-4 border-t border-slate-800">
-              {session ? (
+              {!isOnline ? (
+                <Link
+                  href="/downloads"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-sm font-semibold text-slate-950 bg-amber-500 no-underline px-4 py-2 rounded-md hover:bg-amber-600 transition-colors text-center"
+                >
+                  Offline Downloads
+                </Link>
+              ) : session ? (
                 <>
                   <Link
                     href={session.user.role === 'admin' ? '/admin' : '/dashboard'}
