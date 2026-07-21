@@ -50,16 +50,38 @@ export default function AdminCoursesPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '1.5rem' }}>
         <div>
-          <h1 className="text-2xl font-bold">Course Manager</h1>
-          <p className="text-xs text-muted mt-1">Manage educational courses and videos</p>
+          <h1 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', fontWeight: 700 }}>Course Manager</h1>
+          <p className="text-xs text-muted" style={{ marginTop: '0.2rem' }}>Manage educational courses and videos</p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/admin" className="text-sm px-4 py-2 border rounded hover:bg-surface-2 transition-colors" style={{ color: 'var(--text-secondary)', borderColor: 'var(--surface-2)' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+          <Link
+            href="/admin"
+            style={{
+              fontSize: '0.78rem', fontWeight: 500,
+              padding: '0.4rem 0.85rem',
+              borderRadius: '0.4rem',
+              border: '1px solid var(--surface-2)',
+              color: 'var(--text-secondary)',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
             ← Verification Board
           </Link>
-          <Link href="/admin/courses/new" className="btn-primary text-sm px-4 py-2" style={{ textDecoration: 'none' }}>
+          <Link
+            href="/admin/courses/new"
+            style={{
+              fontSize: '0.78rem', fontWeight: 600,
+              padding: '0.4rem 0.85rem',
+              borderRadius: '0.4rem',
+              background: 'var(--brand-500)',
+              color: '#fff',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
             + Create Course
           </Link>
         </div>
