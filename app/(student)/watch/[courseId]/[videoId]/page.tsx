@@ -160,16 +160,15 @@ export default function WatchVideoPage() {
         (progress) => setDownloadProgress(progress)
       );
 
-      // Explicitly cache the HTML pages needed to view this offline
+      // Explicitly cache the offline downloads page (the only page reachable without internet)
+      // The SW (V6) caches /downloads automatically via stale-while-revalidate, this ensures
+      // it's also populated before the user actually goes offline.
       if ('caches' in window) {
         try {
-          const cache = await caches.open('app-cache-V4');
-          // Cache the current watch page and the downloads page
-          await cache.add(window.location.pathname);
+          const cache = await caches.open('app-cache-V6');
           await cache.add('/downloads');
-          await cache.add('/dashboard');
         } catch (e) {
-          console.warn('Failed to cache HTML routes for offline viewing', e);
+          console.warn('Failed to pre-cache /downloads for offline viewing', e);
         }
       }
 
