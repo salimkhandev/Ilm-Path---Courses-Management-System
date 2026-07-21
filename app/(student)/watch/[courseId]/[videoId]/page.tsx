@@ -160,6 +160,19 @@ export default function WatchVideoPage() {
         (progress) => setDownloadProgress(progress)
       );
 
+      // Explicitly cache the HTML pages needed to view this offline
+      if ('caches' in window) {
+        try {
+          const cache = await caches.open('app-cache-V4');
+          // Cache the current watch page and the downloads page
+          await cache.add(window.location.pathname);
+          await cache.add('/downloads');
+          await cache.add('/dashboard');
+        } catch (e) {
+          console.warn('Failed to cache HTML routes for offline viewing', e);
+        }
+      }
+
       setOffline(true);
     } catch (err: any) {
       setError(err.message || 'Download failed.');

@@ -238,7 +238,7 @@ export default function EditCoursePage() {
   if (loading) return <div className="text-center py-10">Loading course...</div>;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'start' }}>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
       
       {/* Course Info Form */}
       <div className="card">
@@ -344,7 +344,7 @@ export default function EditCoursePage() {
             onChange={e => setVideoTitleInput(e.target.value)}
           />
 
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input 
               ref={videoInputRef}
               type="file" 
@@ -377,33 +377,31 @@ export default function EditCoursePage() {
             {videos.map((v, i) => (
               <div 
                 key={v.id || v.r2Key} 
+                className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-md"
                 style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.75rem', 
-                  padding: '0.5rem 0.75rem', 
                   background: 'var(--surface-1)', 
                   border: '1px solid var(--surface-2)',
-                  borderRadius: '0.375rem' 
                 }}
               >
-                {/* Index / order badge */}
-                <span className="text-xs font-semibold text-muted bg-surface-2 w-6 h-6 flex items-center justify-center rounded-full">
-                  {v.order}
-                </span>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  {/* Index / order badge */}
+                  <span className="text-xs font-semibold text-muted bg-surface-2 w-6 h-6 flex flex-shrink-0 items-center justify-center rounded-full">
+                    {v.order}
+                  </span>
 
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold truncate">{v.title}</h4>
-                  <p className="text-xs text-muted">
-                    ⏱ {formatDuration(v.duration)} &nbsp;|&nbsp; 💾 {(v.sizeBytes / 1024 / 1024).toFixed(1)} MB
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold truncate">{v.title}</h4>
+                    <p className="text-xs text-muted">
+                      ⏱ {formatDuration(v.duration)} &nbsp;|&nbsp; 💾 {(v.sizeBytes / 1024 / 1024).toFixed(1)} MB
+                    </p>
+                  </div>
                 </div>
 
                 {/* Move / Remove controls */}
-                <div className="flex gap-1">
+                <div className="flex gap-1 self-end sm:self-auto">
                   <button 
                     type="button"
-                    className="p-1 text-xs hover:bg-surface-2 rounded border border-surface-2" 
+                    className="p-1.5 text-xs hover:bg-surface-2 rounded border border-surface-2 flex items-center justify-center" 
                     onClick={() => moveVideo(i, 'up')}
                     disabled={i === 0}
                   >
@@ -411,7 +409,7 @@ export default function EditCoursePage() {
                   </button>
                   <button 
                     type="button"
-                    className="p-1 text-xs hover:bg-surface-2 rounded border border-surface-2" 
+                    className="p-1.5 text-xs hover:bg-surface-2 rounded border border-surface-2 flex items-center justify-center" 
                     onClick={() => moveVideo(i, 'down')}
                     disabled={i === videos.length - 1}
                   >
@@ -419,7 +417,7 @@ export default function EditCoursePage() {
                   </button>
                   <button 
                     type="button"
-                    className="p-1 text-xs hover:bg-opacity-80 rounded" 
+                    className="p-1.5 px-2 text-xs hover:bg-opacity-80 rounded flex items-center justify-center" 
                     style={{ background: '#ef4444', color: '#fff', border: 'none', cursor: 'pointer' }}
                     onClick={() => removeVideo(i)}
                   >

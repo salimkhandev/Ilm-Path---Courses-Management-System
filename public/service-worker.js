@@ -129,10 +129,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then((res) => {
-        if (res && res.status === 200 && res.type === 'basic') {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(request, clone)).catch(() => {});
-        }
+        // Aggressive caching removed to ensure ONLY explicitly downloaded items are cached
         return res;
       })
       .catch(async () => {

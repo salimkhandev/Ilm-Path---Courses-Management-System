@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     status: u.status,
     // Filter nulls: a course ObjectId may have no matching Course doc (deleted course)
     enrolledCourses: (u.enrolledCourseIds as any[] ?? []).filter(Boolean).map((c: any) => ({
-      id: c._id.toString(),
+      id: (c._id || c).toString(),
       title: c.title ?? '(deleted course)',
     })),
     // Explicitly convert Dates → ISO strings so JSON.parse gives consistent types
