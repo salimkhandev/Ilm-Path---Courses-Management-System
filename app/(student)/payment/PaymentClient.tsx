@@ -21,8 +21,6 @@ export default function PaymentClient() {
   const [coursesLoading, setCoursesLoading] = useState(true);
 
   const [method, setMethod] = useState('easypaisa');
-  const [senderPhone, setSenderPhone] = useState('');
-  const [transactionId, setTransactionId] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [agreed, setAgreed] = useState(false);
   
@@ -97,8 +95,6 @@ export default function PaymentClient() {
         body: JSON.stringify({
           courseId: selectedCourseId,
           amount: courses.find(c => c.id === selectedCourseId)?.price ?? 0,
-          transactionId,
-          senderPhone,
           paymentMethod: method,
           screenshotKey: key
         })
@@ -191,29 +187,6 @@ export default function PaymentClient() {
 
       {/* Submission Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1.5">Sender Phone Number</label>
-          <input 
-            className="input" 
-            type="text" 
-            placeholder="03xx-xxxxxxx"
-            value={senderPhone}
-            onChange={e => setSenderPhone(e.target.value)}
-            required 
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1.5">Transaction ID / TID</label>
-          <input 
-            className="input" 
-            type="text" 
-            placeholder="e.g. 12345678901"
-            value={transactionId}
-            onChange={e => setTransactionId(e.target.value)}
-            required 
-          />
-        </div>
 
         <div>
           <label className="block text-sm font-medium mb-1.5">Payment Screenshot</label>

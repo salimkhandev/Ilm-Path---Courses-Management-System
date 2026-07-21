@@ -8,9 +8,7 @@ export interface IPayment extends Document {
   courseId: mongoose.Types.ObjectId; // which course this payment is for
   name: string;
   email: string;
-  phone: string;
   paymentMethod: string;
-  transactionId: string;
   amount: number;
   currency: string;
   screenshotKey: string;   // R2 object key — never a URL
@@ -27,9 +25,7 @@ const PaymentSchema = new Schema<IPayment>(
     courseId: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, lowercase: true, trim: true },
-    phone: { type: String, required: true, trim: true },
     paymentMethod: { type: String, required: true },
-    transactionId: { type: String, required: true, trim: true },
     amount: { type: Number, required: true },
     currency: { type: String, default: 'PKR' },
     screenshotKey: { type: String, required: true },

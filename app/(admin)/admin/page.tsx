@@ -8,9 +8,7 @@ interface PaymentItem {
   id: string;
   name: string;
   email: string;
-  phone: string;
   paymentMethod: string;
-  transactionId: string;
   amount: number;
   status: 'pending' | 'approved' | 'rejected';
   submittedAt: string;
@@ -119,9 +117,7 @@ export default function AdminDashboard() {
                   {/* Details column */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                     <div><strong>Method:</strong> {p.paymentMethod}</div>
-                    <div><strong>TID:</strong> {p.transactionId}</div>
                     <div><strong>Amount:</strong> Rs. {p.amount.toLocaleString()}</div>
-                    <div><strong>Phone:</strong> {p.phone}</div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                       {new Date(p.submittedAt).toLocaleString()}
                     </div>

@@ -1,5 +1,5 @@
 // IlmPath Service Worker
-const CACHE_VERSION = 'V5';
+const CACHE_VERSION = 'V6';
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`;
 
 // Static shell pages to pre-cache on install
