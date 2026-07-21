@@ -14,23 +14,26 @@ export async function GET(req: NextRequest) {
 
   await connectDB();
 
-  // Find all students, optionally populate their enrolled courses if we want their titles
   const users = await User.find({ role: 'student' })
     .populate('enrolledCourseIds', 'title')
     .sort({ createdAt: -1 })
     .lean();
 
   const formattedUsers = users.map(u => ({
-    id: u._id.toString(),
+    id: (u._id as any).toString(),
     name: u.name,
     email: u.email,
     status: u.status,
-    enrolledCourses: (u.enrolledCourseIds as any[] || []).map(c => ({
+    // Filter nulls: a course ObjectId may have no matching Course doc (deleted course)
+    enrolledCourses: (u.enrolledCourseIds as any[] ?? []).filter(Boolean).map((c: any) => ({
       id: c._id.toString(),
-      title: c.title
+      title: c.title ?? '(deleted course)',
     })),
-    createdAt: u.createdAt,
-    accessExpiresAt: u.accessExpiresAt
+    // Explicitly convert Dates → ISO strings so JSON.parse gives consistent types
+    createdAt: u.createdAt instanceof Date ? u.createdAt.toISOString() : u.createdAt,
+    accessExpiresAt: u.accessExpiresAt instanceof Date
+      ? u.accessExpiresAt.toISOString()
+      : (u.accessExpiresAt ?? null),
   }));
 
   return NextResponse.json(formattedUsers);

@@ -1,108 +1,171 @@
-// PashtoSkills Service Worker
-const CACHE_VERSION = 'V3';
+// IlmPath Service Worker
+const CACHE_VERSION = 'V4';
 const CACHE_NAME = `app-cache-${CACHE_VERSION}`;
 
 // Static shell pages to pre-cache on install
-const FILES_TO_CACHE = [
-  '/',
-  '/manifest',
-];
+const PRECACHE_URLS = ['/', '/manifest'];
 
-// ─── Install ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function isSameOriginGET(request) {
+  return request.method === 'GET' && request.url.startsWith(self.location.origin);
+}
+
+// Routes that must always hit the network — auth-gated, sensitive, or highly dynamic
+function shouldBypass(url) {
+  return (
+    url.includes('/api/') ||           // all API routes bypass SW entirely
+    url.includes('/admin') ||          // admin panel — auth-gated, always fresh
+    url.includes('/payment') ||
+    url.includes('/login') ||
+    url.includes('/register') ||
+    url.includes('/forgot-password') ||
+    url.includes('/reset-password') ||
+    url.includes('/_next/webpack-hmr') // HMR dev-only
+  );
+}
+
+// Content-hashed Next.js static assets — safe to cache permanently
+function isImmutableAsset(url) {
+  return url.includes('/_next/static/');
+}
+
+// Public marketing pages — cheap to serve stale, background-update
+function isStaticPage(url) {
+  const { pathname } = new URL(url);
+  return (
+    pathname === '/' ||
+    pathname.startsWith('/about') ||
+    pathname.startsWith('/privacy') ||
+    pathname.startsWith('/terms') ||
+    pathname.startsWith('/refund')
+  );
+}
+
+// ─── Install ─────────────────────────────────────────────────────────────────
+
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      for (const file of FILES_TO_CACHE) {
+      for (const url of PRECACHE_URLS) {
         try {
-          await cache.add(new Request(file, { cache: 'reload' }));
+          await cache.add(new Request(url, { cache: 'reload' }));
         } catch (err) {
-          console.warn('[SW] Pre-cache failed for', file, err);
+          console.warn('[SW] Pre-cache failed for', url, err);
         }
       }
     })
   );
 });
 
-// ─── Activate ───────────────────────────────────────────────────────────────
+// ─── Activate ────────────────────────────────────────────────────────────────
+
 self.addEventListener('activate', (event) => {
-  // Clean up old caches only — do NOT call clients.claim() here.
-  // skipWaiting() + clients.claim() together cause a race: the SW takes over
-  // existing tabs mid-session, interrupting in-flight fetches and producing
-  // empty responses that throw "Unexpected end of JSON input".
-  // The SW will take control naturally on the next page navigation.
+  // Delete all caches from previous SW versions
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
-      )
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
-  console.log('[SW] Activated');
+  // Do NOT call clients.claim() — skipWaiting() + claim() together cause a race
+  // that interrupts in-flight fetches on existing tabs (empty JSON responses).
+  // SW takes control naturally on the next navigation.
+  console.log('[SW] Activated — cache:', CACHE_NAME);
 });
 
+// ─── Fetch ───────────────────────────────────────────────────────────────────
 
-// ─── Fetch ──────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = request.url;
 
-  // Only handle same-origin GET requests
-  if (request.method !== 'GET' || !url.startsWith(self.location.origin)) return;
+  if (!isSameOriginGET(request)) return;
+  if (shouldBypass(url)) return;
 
-  // Bypass: auth, dynamic APIs, admin, upload, Next.js internal chunks, auth pages
-  const shouldBypass =
-    url.includes('/api/auth/') ||
-    url.includes('/api/payment') ||
-    url.includes('/api/admin') ||
-    url.includes('/api/upload') ||
-    url.includes('/api/progress') ||
-    url.includes('/api/video/') ||
-    url.includes('/api/courses') ||
-    url.includes('/api/debug') ||
-    url.includes('/_next/static/chunks/') ||
-    url.includes('/login') ||
-    url.includes('/register');
-
-  if (shouldBypass) return;
-
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(request)
-        .then((networkResponse) => {
-          // Only cache successful, same-origin, basic responses
-          if (
-            networkResponse &&
-            networkResponse.status === 200 &&
-            networkResponse.type === 'basic'
-          ) {
-            const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone)).catch(() => {});
+  // ── Strategy 1: Cache-first (immutable assets) ────────────────────────────
+  // /_next/static/* files are content-hashed — once cached they never change.
+  if (isImmutableAsset(url)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((res) => {
+          if (res && res.status === 200 && res.type === 'basic') {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((c) => c.put(request, clone)).catch(() => {});
           }
-          return networkResponse;
-        })
-        .catch(() => {
-          // ── Offline fallback ──────────────────────────────────────────────
-          // Return JSON for API-like requests, HTML for navigation requests
-          if (request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/') || new Response(
-              '<html><body><p>You are offline.</p></body></html>',
-              { headers: { 'Content-Type': 'text/html' } }
-            );
-          }
-          // JSON fallback so .json() callers don't throw "Unexpected end of JSON"
-          return new Response(
-            JSON.stringify({ error: 'offline', message: 'You are offline.' }),
-            { status: 503, headers: { 'Content-Type': 'application/json' } }
-          );
+          return res;
         });
-    })
+      })
+    );
+    return;
+  }
+
+  // ── Strategy 2: Stale-while-revalidate (static marketing pages) ──────────
+  // Serve cached copy immediately for speed; update cache silently in background.
+  if (isStaticPage(url)) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(request);
+
+        const fetchPromise = fetch(request)
+          .then((res) => {
+            if (res && res.status === 200 && res.type === 'basic') {
+              cache.put(request, res.clone()).catch(() => {});
+            }
+            return res;
+          })
+          .catch(() => null);
+
+        // Serve stale immediately; fall through to network if no cache yet
+        return cached || fetchPromise || offlineHtmlFallback();
+      })
+    );
+    return;
+  }
+
+  // ── Strategy 3: Network-first (dynamic student pages, _next/image, etc.) ──
+  // Always try the network; only fall back to cache when offline.
+  event.respondWith(
+    fetch(request)
+      .then((res) => {
+        if (res && res.status === 200 && res.type === 'basic') {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((c) => c.put(request, clone)).catch(() => {});
+        }
+        return res;
+      })
+      .catch(async () => {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+
+        if (request.headers.get('accept')?.includes('text/html')) {
+          return offlineHtmlFallback();
+        }
+        // JSON sentinel so callers don't throw "Unexpected end of JSON input"
+        return new Response(
+          JSON.stringify({ error: 'offline', message: 'You are offline.' }),
+          { status: 503, headers: { 'Content-Type': 'application/json' } }
+        );
+      })
   );
 });
 
+// ─── Offline HTML fallback ────────────────────────────────────────────────────
+
+async function offlineHtmlFallback() {
+  const cached = await caches.match('/');
+  return (
+    cached ||
+    new Response(
+      '<html><body><p>You are offline. Please check your connection.</p></body></html>',
+      { headers: { 'Content-Type': 'text/html' } }
+    )
+  );
+}
+
 // ─── Messages ────────────────────────────────────────────────────────────────
+
 self.addEventListener('message', (event) => {
   const msg = event.data || {};
 

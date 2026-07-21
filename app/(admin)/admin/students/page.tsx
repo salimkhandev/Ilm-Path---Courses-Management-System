@@ -28,10 +28,12 @@ export default function StudentsPage() {
 
   useEffect(() => {
     fetch('/api/admin/students')
-      .then(r => safeJson<Student[]>(r))
-      .then(data => {
-        // API returns { error: string } on failure, or Student[] on success
-        if (!Array.isArray(data)) throw new Error((data as { error?: string }).error ?? 'Unexpected response');
+      .then(async (res) => {
+        // Read body once, then branch on success/failure
+        const data = await safeJson<Student[] | { error: string }>(res);
+        if (!res.ok || !Array.isArray(data)) {
+          throw new Error((data as { error?: string }).error ?? `Server error (${res.status})`);
+        }
         setStudents(data);
       })
       .catch(err => setError(err.message))
