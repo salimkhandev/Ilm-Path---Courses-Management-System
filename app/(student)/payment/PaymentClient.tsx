@@ -1,0 +1,211 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { compressImage } from '@/lib/image';
+
+const PRICE = 5000; // Hardcoded for v1
+
+export default function PaymentClient() {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [method, setMethod] = useState('easypaisa');
+  const [senderPhone, setSenderPhone] = useState('');
+  const [transactionId, setTransactionId] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [agreed, setAgreed] = useState(false);
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+
+    if (!file) {
+      setError('Please attach a screenshot of your payment.');
+      return;
+    }
+    
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file (jpg or png).');
+      return;
+    }
+
+    if (!agreed) {
+      setError('You must agree to the Terms & Conditions and Refund Policy.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 1. Compress image locally (800x800, 70% quality for tiny size)
+      const compressedBlob = await compressImage(file, 800, 800, 0.7);
+      
+      // 2. Get presigned URL
+      const urlRes = await fetch('/api/upload/screenshot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentType: 'image/jpeg' })
+      });
+      
+      if (!urlRes.ok) throw new Error('Failed to get upload URL');
+      const { url, key } = await urlRes.json();
+
+      // 3. Upload directly to Cloudflare R2
+      const uploadRes = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/jpeg' },
+        body: compressedBlob
+      });
+
+      if (!uploadRes.ok) throw new Error('Failed to upload screenshot');
+
+      // 4. Submit payment record to our DB
+      const submitRes = await fetch('/api/payment/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: PRICE,
+          transactionId,
+          senderPhone,
+          paymentMethod: method,
+          screenshotKey: key
+        })
+      });
+
+      if (!submitRes.ok) {
+        const d = await submitRes.json();
+        throw new Error(d.error || 'Failed to submit payment record');
+      }
+
+      // Success! NextAuth token status won't update until session refresh, 
+      // but router.refresh() triggers a middleware check. The simplest flow
+      // is to manually navigate to pending.
+      window.location.href = '/payment/pending';
+      
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during submission.');
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="card">
+      <h1 className="text-2xl font-bold mb-2">Complete Your Payment</h1>
+      <p className="text-sm text-secondary mb-6 line-height-relaxed">
+        1-year access to all courses is <strong>Rs. {PRICE}</strong>. 
+        Please transfer the amount using one of the methods below, then submit your proof of payment.
+      </p>
+
+      {/* Payment Instructions */}
+      <div className="mb-6 p-4 rounded-lg" style={{ background: 'var(--surface-1)', border: '1px solid var(--surface-2)' }}>
+        <h3 className="font-medium mb-3">Our Account Details:</h3>
+        
+        <div className="flex gap-4 mb-4">
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input type="radio" name="method" checked={method === 'easypaisa'} onChange={() => setMethod('easypaisa')} />
+            EasyPaisa
+          </label>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input type="radio" name="method" checked={method === 'jazzcash'} onChange={() => setMethod('jazzcash')} />
+            JazzCash
+          </label>
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input type="radio" name="method" checked={method === 'bank'} onChange={() => setMethod('bank')} />
+            Bank Transfer
+          </label>
+        </div>
+
+        <div className="text-sm text-secondary p-3 rounded bg-surface-2">
+          {method === 'easypaisa' && (
+            <><strong>EasyPaisa:</strong> 0300-1234567<br/>Title: IlmPath Education</>
+          )}
+          {method === 'jazzcash' && (
+            <><strong>JazzCash:</strong> 0300-1234567<br/>Title: IlmPath Education</>
+          )}
+          {method === 'bank' && (
+            <><strong>Meezan Bank</strong><br/>Acc: 0123456789<br/>Title: IlmPath Education</>
+          )}
+        </div>
+      </div>
+
+      {error && <div className="alert-error mb-4">{error}</div>}
+
+      {/* Submission Form */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Sender Phone Number</label>
+          <input 
+            className="input" 
+            type="text" 
+            placeholder="03xx-xxxxxxx"
+            value={senderPhone}
+            onChange={e => setSenderPhone(e.target.value)}
+            required 
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Transaction ID / TID</label>
+          <input 
+            className="input" 
+            type="text" 
+            placeholder="e.g. 12345678901"
+            value={transactionId}
+            onChange={e => setTransactionId(e.target.value)}
+            required 
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Payment Screenshot</label>
+          <div 
+            className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors"
+            style={{ borderColor: file ? 'var(--brand-500)' : 'var(--surface-2)' }}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {file ? (
+              <span className="text-sm font-medium" style={{ color: 'var(--brand-500)' }}>
+                {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB) - Ready to upload
+              </span>
+            ) : (
+              <span className="text-sm text-secondary">
+                Click to browse or take a photo
+              </span>
+            )}
+            <input 
+              ref={fileInputRef}
+              type="file" 
+              accept="image/*"
+              className="hidden"
+              style={{ display: 'none' }}
+              onChange={e => setFile(e.target.files?.[0] || null)}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 mt-4">
+          <input 
+            type="checkbox" 
+            id="terms" 
+            className="mt-1"
+            checked={agreed}
+            onChange={e => setAgreed(e.target.checked)}
+          />
+          <label htmlFor="terms" className="text-sm text-secondary">
+            I agree to the <Link href="/terms" className="text-brand-400">Terms & Conditions</Link> and <Link href="/refund" className="text-brand-400">Refund Policy</Link>
+          </label>
+        </div>
+
+        <button className="btn-primary mt-4" type="submit" disabled={loading}>
+          {loading ? <span className="spinner" /> : null}
+          {loading ? 'Submitting...' : 'Submit Payment Proof'}
+        </button>
+      </form>
+    </div>
+  );
+}
