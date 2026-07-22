@@ -21,9 +21,13 @@ export async function GET(req: NextRequest) {
     payments.map(async (p) => {
       let screenshotUrl = null;
       try {
-        screenshotUrl = p.screenshotKey ? await getPresignedGetUrl(p.screenshotKey, 3600) : null;
+        if (p.driveFileId) {
+          screenshotUrl = `/api/admin/payments/receipt/${p.driveFileId}`;
+        } else if (p.screenshotKey) {
+          screenshotUrl = await getPresignedGetUrl(p.screenshotKey, 3600);
+        }
       } catch (err) {
-        console.error('Failed to get presigned URL for', p.screenshotKey, err);
+        console.error('Failed to get URL for payment receipt', p._id, err);
       }
       return {
         id: p._id.toString(),

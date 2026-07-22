@@ -41,8 +41,16 @@ export async function GET(
 
   const video = course.videos[0];
 
-  // 6 hours expiry for OPFS download per §11
-  const url = await getPresignedGetUrl(video.r2Key, 21600);
+  if (video.driveFileId) {
+    // With Google Drive proxying, the local URL acts as the download URL.
+    return NextResponse.json({ url: `/api/video/${videoId}/stream` });
+  }
 
-  return NextResponse.json({ url });
+  if (video.r2Key) {
+    // 6 hours expiry for OPFS download per §11
+    const url = await getPresignedGetUrl(video.r2Key, 21600);
+    return NextResponse.json({ url });
+  }
+
+  return NextResponse.json({ error: 'Video file missing.' }, { status: 404 });
 }

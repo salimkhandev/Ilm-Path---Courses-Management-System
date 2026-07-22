@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { getPresignedPutUrl, r2Key } from '@/lib/r2';
+import { createResumableUploadSession, DRIVE_FOLDERS } from '@/lib/gdrive';
 
 export async function POST(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -19,10 +19,20 @@ export async function POST(req: NextRequest) {
   }
 
   const timestamp = Date.now();
-  const key = r2Key(`screenshots/${token.id}-${timestamp}.jpg`);
+  const driveFileName = `${token.id}-${timestamp}.jpg`;
   
-  // URL expires in 10 minutes — plenty of time for client-side compression + upload
-  const url = await getPresignedPutUrl(key, contentType, 600);
+  try {
+    const origin = req.headers.get('origin') || 'http://localhost:3000';
+    const { uploadUrl } = await createResumableUploadSession(
+      driveFileName,
+      contentType,
+      DRIVE_FOLDERS.RECEIPTS,
+      origin
+    );
 
-  return NextResponse.json({ url, key });
+    return NextResponse.json({ url: uploadUrl, isGoogleDrive: true });
+  } catch (error: any) {
+    console.error('Screenshot upload session creation failed:', error);
+    return NextResponse.json({ error: 'Failed to create upload session' }, { status: 500 });
+  }
 }

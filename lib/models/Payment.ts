@@ -11,7 +11,8 @@ export interface IPayment extends Document {
   paymentMethod: string;
   amount: number;
   currency: string;
-  screenshotKey: string;   // R2 object key — never a URL
+  screenshotKey?: string;   // R2 object key — never a URL
+  driveFileId?: string;
   status: PaymentStatus;
   submittedAt: Date;
   reviewedAt: Date | null;
@@ -28,7 +29,8 @@ const PaymentSchema = new Schema<IPayment>(
     paymentMethod: { type: String, required: true },
     amount: { type: Number, required: true },
     currency: { type: String, default: 'PKR' },
-    screenshotKey: { type: String, required: true },
+    screenshotKey: { type: String, required: false },
+    driveFileId: { type: String, required: false },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     submittedAt: { type: Date, default: () => new Date() },
     reviewedAt: { type: Date, default: null },

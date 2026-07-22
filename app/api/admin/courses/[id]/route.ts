@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import Course from '@/lib/models/Course';
 import { getPresignedGetUrl } from '@/lib/r2';
+import { makeFilePublicAndGetThumbnail } from '@/lib/gdrive';
 
 export async function GET(
   req: NextRequest,
@@ -26,9 +27,9 @@ export async function GET(
   }
 
   // Admin gets the thumbnail presigned URL
-  const thumbnailUrl = course.thumbnailKey
+  const thumbnailUrl = course.driveThumbnailUrl || (course.thumbnailKey
     ? await getPresignedGetUrl(course.thumbnailKey, 3600)
-    : null;
+    : null);
 
   return NextResponse.json({
     id: course._id.toString(),
@@ -36,6 +37,7 @@ export async function GET(
     description: course.description,
     price: course.price,
     thumbnailKey: course.thumbnailKey,
+    driveThumbnailUrl: course.driveThumbnailUrl,
     thumbnailUrl,
     videos: course.videos.map((v) => ({
       id: v._id.toString(),
@@ -43,6 +45,7 @@ export async function GET(
       title: v.title,
       duration: v.duration,
       r2Key: v.r2Key,
+      driveFileId: v.driveFileId,
       sizeBytes: v.sizeBytes,
     })),
   });
@@ -63,9 +66,9 @@ export async function PUT(
   }
 
   const body = await req.json();
-  const { title, description, price, thumbnailKey, videos } = body;
+  const { title, description, price, thumbnailKey, driveThumbnailId, videos } = body;
 
-  if (!title || !description || !thumbnailKey || price === undefined) {
+  if (!title || !description || price === undefined) {
     return NextResponse.json({ error: 'Missing fields.' }, { status: 400 });
   }
 
@@ -74,7 +77,7 @@ export async function PUT(
   // Validate video entries if provided
   const parsedVideos = Array.isArray(videos)
     ? videos.map((v: any, index: number) => {
-        if (!v.title || !v.r2Key || typeof v.duration !== 'number' || typeof v.sizeBytes !== 'number') {
+        if (!v.title || (!v.r2Key && !v.driveFileId) || typeof v.duration !== 'number' || typeof v.sizeBytes !== 'number') {
           throw new Error(`Invalid video properties at index ${index}`);
         }
         return {
@@ -82,7 +85,8 @@ export async function PUT(
           order: typeof v.order === 'number' ? v.order : index + 1,
           title: v.title,
           duration: v.duration,
-          r2Key: v.r2Key,
+          r2Key: v.r2Key || '',
+          driveFileId: v.driveFileId,
           sizeBytes: v.sizeBytes,
         };
       })
@@ -93,10 +97,24 @@ export async function PUT(
     return NextResponse.json({ error: 'Course not found.' }, { status: 404 });
   }
 
+  let driveThumbnailUrl = course.driveThumbnailUrl;
+  
+  // If driveThumbnailId was provided AND it's different from the stored key/id
+  // (We use thumbnailKey to temporarily hold the ID from frontend)
+  if (driveThumbnailId) {
+    try {
+      const url = await makeFilePublicAndGetThumbnail(driveThumbnailId);
+      if (url) driveThumbnailUrl = url;
+    } catch (err) {
+      console.error('Failed to make thumbnail public', err);
+    }
+  }
+
   course.title = title;
   course.description = description;
   course.price = Number(price);
-  course.thumbnailKey = thumbnailKey;
+  course.thumbnailKey = thumbnailKey || '';
+  if (driveThumbnailUrl) course.driveThumbnailUrl = driveThumbnailUrl;
   course.videos = parsedVideos as any;
 
   await course.save();

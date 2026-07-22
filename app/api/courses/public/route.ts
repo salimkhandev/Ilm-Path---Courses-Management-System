@@ -17,7 +17,7 @@ export async function GET() {
       description: c.description,
       price: c.price ?? 5000,
       videoCount: c.videos.length,
-      thumbnailUrl: c.thumbnailKey ? await getPresignedGetUrl(c.thumbnailKey, 3600) : null,
+      thumbnailUrl: c.driveThumbnailUrl ? c.driveThumbnailUrl : (c.thumbnailKey ? await getPresignedGetUrl(c.thumbnailKey, 3600) : null),
     }))
   );
 

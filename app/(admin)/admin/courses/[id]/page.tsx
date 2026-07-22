@@ -57,6 +57,7 @@ export default function EditCoursePage() {
   // Local helper for single video upload
   const [videoTitleInput, setVideoTitleInput] = useState('');
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const [videoFile, setVideoFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -105,7 +106,7 @@ export default function EditCoursePage() {
         throw new Error(d.error || 'Failed to get upload URL');
       }
 
-      const { url, key } = await urlRes.json();
+      const { url, key, isGoogleDrive } = await urlRes.json();
 
       const uploadRes = await fetch(url, {
         method: 'PUT',
@@ -113,9 +114,22 @@ export default function EditCoursePage() {
         body: compressedBlob,
       });
 
-      if (!uploadRes.ok) throw new Error('Failed to upload thumbnail to R2.');
+      if (!uploadRes.ok) {
+        const errorText = await uploadRes.text();
+        console.error('Thumbnail upload failed:', uploadRes.status, errorText);
+        throw new Error(`Failed to upload thumbnail: ${uploadRes.status} ${errorText}`);
+      }
 
-      setThumbnailKey(key);
+      if (isGoogleDrive) {
+        // Google Drive resumable upload returns the file metadata upon completion
+        const fileMetadata = await uploadRes.json();
+        setThumbnailKey(fileMetadata.id); // store driveFileId in thumbnailKey state temporarily
+      } else {
+        /*
+        setThumbnailKey(key);
+        */
+      }
+      
       setThumbnailUrl(URL.createObjectURL(file));
     } catch (err: any) {
       setError(err.message);
@@ -130,12 +144,13 @@ export default function EditCoursePage() {
     }
 
     setUploadingVideo(true);
+    setVideoUploadProgress(0);
 
     try {
       // 1. Get duration and size
       const { duration, size } = await getVideoDurationAndSize(videoFile);
 
-      // 2. Get presigned video upload URL
+      // 2. Create a Drive resumable upload session
       const urlRes = await fetch('/api/upload/video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -147,29 +162,71 @@ export default function EditCoursePage() {
         throw new Error(d.error || 'Failed to get video upload URL');
       }
 
-      const { url, key } = await urlRes.json();
+      const { url, key, isGoogleDrive } = await urlRes.json();
 
-      // 3. Upload directly to R2
-      const uploadRes = await fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': videoFile.type },
-        body: videoFile,
-      });
+      let finalKey = key;
+      let finalDriveFileId: string | undefined;
 
-      if (!uploadRes.ok) throw new Error('Video file upload to R2 failed.');
+      if (isGoogleDrive) {
+        // Google Drive resumable upload: send file in 10 MB chunks
+        const CHUNK_SIZE = 10 * 1024 * 1024; // 10 MB
+        const totalSize = videoFile.size;
+        let offset = 0;
+        let driveFileId = '';
 
-      // 4. Add to state list
-      const newVideo: VideoFormItem = {
+        while (offset < totalSize) {
+          const end = Math.min(offset + CHUNK_SIZE, totalSize);
+          const chunk = videoFile.slice(offset, end);
+
+          const chunkRes = await fetch(url, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': videoFile.type,
+              'Content-Range': `bytes ${offset}-${end - 1}/${totalSize}`,
+            },
+            body: chunk,
+          });
+
+          // 308 = Resume Incomplete (more chunks needed)
+          // 200 / 201 = upload complete
+          if (chunkRes.status === 200 || chunkRes.status === 201) {
+            const metadata = await chunkRes.json();
+            driveFileId = metadata.id;
+          } else if (chunkRes.status !== 308) {
+            const errText = await chunkRes.text();
+            throw new Error(`Chunk upload failed at offset ${offset}: ${chunkRes.status} ${errText}`);
+          }
+
+          offset = end;
+          setVideoUploadProgress(Math.round((offset / totalSize) * 100));
+        }
+
+        finalDriveFileId = driveFileId;
+        finalKey = '';
+      } else {
+        // Non-Drive presigned URL (e.g. R2): single PUT
+        /*
+        const uploadRes = await fetch(url, {
+          method: 'PUT',
+          headers: { 'Content-Type': videoFile.type },
+          body: videoFile,
+        });
+        if (!uploadRes.ok) {
+          throw new Error(`Video upload failed: ${uploadRes.status}`);
+        }
+        */
+      }
+
+      const newVideo: VideoFormItem & { driveFileId?: string } = {
         order: videos.length + 1,
         title: videoTitleInput,
         duration,
-        r2Key: key,
+        r2Key: finalKey,
+        driveFileId: finalDriveFileId,
         sizeBytes: size,
       };
 
       setVideos((prev) => [...prev, newVideo]);
-      
-      // Reset inputs
       setVideoTitleInput('');
       setVideoFile(null);
       if (videoInputRef.current) videoInputRef.current.value = '';
@@ -177,6 +234,7 @@ export default function EditCoursePage() {
       setVideoError(err.message || 'Video upload failed.');
     } finally {
       setUploadingVideo(false);
+      setVideoUploadProgress(0);
     }
   }
 
@@ -210,16 +268,22 @@ export default function EditCoursePage() {
     setError('');
 
     try {
+      const isDriveThumbnail = thumbnailKey && !thumbnailKey.includes('.'); // R2 keys usually have an extension, Drive IDs don't. But to be safer, we can pass both or just send it as driveThumbnailId if it doesn't look like a path.
+      // Wait, we can add a state for driveThumbnailId!
+      
+      const payload = {
+        title,
+        description,
+        price,
+        thumbnailKey: thumbnailKey,
+        driveThumbnailId: thumbnailKey && !thumbnailKey.includes('/') ? thumbnailKey : undefined, // Drive IDs are alphanumeric/dashes, R2 keys have 'thumbnails/...'
+        videos,
+      };
+
       const res = await fetch(`/api/admin/courses/${courseId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          description,
-          price,
-          thumbnailKey,
-          videos,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -368,9 +432,17 @@ export default function EditCoursePage() {
             </button>
           </div>
           {uploadingVideo && (
-            <p className="text-xs text-brand-400">
-              ⚡ Uploading video directly to Cloudflare R2...
-            </p>
+            <div className="flex flex-col gap-1">
+              <div className="w-full bg-surface-2 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: `${videoUploadProgress}%`, background: 'var(--brand-500)' }}
+                />
+              </div>
+              <p className="text-xs text-brand-400">
+                ⚡ Uploading... {videoUploadProgress}%
+              </p>
+            </div>
           )}
         </div>
 

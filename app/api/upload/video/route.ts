@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { getPresignedPutUrl, r2Key } from '@/lib/r2';
+import { createResumableUploadSession, DRIVE_FOLDERS } from '@/lib/gdrive';
 
 export async function POST(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -18,13 +18,28 @@ export async function POST(req: NextRequest) {
   // Clean filename for safety
   const safeName = filename?.replace(/[^a-zA-Z0-9.-]/g, '_') || 'video.mp4';
   const timestamp = Date.now();
-  
-  // No course ID in path for simplicity — the admin course form just uploads the video
-  // and gets the key back to save with the course document.
-  const key = r2Key(`videos/${timestamp}-${safeName}`);
-  
-  // Video uploads can take a while — give 1 hour expiry
-  const url = await getPresignedPutUrl(key, contentType, 3600);
+  const driveFileName = `${timestamp}-${safeName}`;
 
-  return NextResponse.json({ url, key });
+  try {
+    const origin = req.headers.get('origin') || 'http://localhost:3000';
+    const { uploadUrl } = await createResumableUploadSession(
+      driveFileName,
+      contentType,
+      DRIVE_FOLDERS.VIDEOS,
+      origin
+    );
+
+    // We still return 'key' as 'driveFileName' temporarily for backward compatibility in frontend component state if needed,
+    // although we don't have the fileId yet because the upload hasn't finished.
+    // Wait, the client doesn't need fileId upfront, it needs the url.
+    // Actually, in the current R2 flow, the client submits the 'key' (which is the path) back to the backend when saving the course.
+    // With Drive, the client uploads directly to the session URL. But how do we get the fileId?
+    // The resumable upload response returns the completed file metadata, including `id`.
+    // The client MUST return that `id` to the backend when saving the course.
+    // So the client just needs the `uploadUrl`.
+    return NextResponse.json({ url: uploadUrl, isGoogleDrive: true });
+  } catch (error: any) {
+    console.error('Video upload session creation failed:', error);
+    return NextResponse.json({ error: 'Failed to create upload session' }, { status: 500 });
+  }
 }

@@ -82,9 +82,9 @@ export default function PaymentClient() {
       });
       
       if (!urlRes.ok) throw new Error('Failed to get upload URL');
-      const { url, key } = await safeJson<{ url: string; key: string }>(urlRes);
+      const { url, key, isGoogleDrive } = await safeJson<{ url: string; key: string; isGoogleDrive?: boolean }>(urlRes);
 
-      // 3. Upload directly to Cloudflare R2
+      // 3. Upload directly
       const uploadRes = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'image/jpeg' },
@@ -92,6 +92,15 @@ export default function PaymentClient() {
       });
 
       if (!uploadRes.ok) throw new Error('Failed to upload screenshot');
+
+      let finalKey = key;
+      let driveFileId = undefined;
+
+      if (isGoogleDrive) {
+        const fileMetadata = await safeJson<{ id: string }>(uploadRes);
+        driveFileId = fileMetadata.id;
+        finalKey = '';
+      }
 
       // 4. Submit payment record to our DB
       const submitRes = await fetch('/api/payment/submit', {
@@ -101,7 +110,8 @@ export default function PaymentClient() {
           courseId: selectedCourseId,
           amount: courses.find(c => c.id === selectedCourseId)?.price ?? 0,
           paymentMethod: method,
-          screenshotKey: key
+          screenshotKey: finalKey,
+          driveFileId: driveFileId,
         })
       });
 

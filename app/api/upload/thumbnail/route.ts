@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { getPresignedPutUrl, r2Key } from '@/lib/r2';
+import { createResumableUploadSession, DRIVE_FOLDERS } from '@/lib/gdrive';
 
 export async function POST(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -18,9 +18,20 @@ export async function POST(req: NextRequest) {
   // Clean filename for safety
   const safeName = filename?.replace(/[^a-zA-Z0-9.-]/g, '_') || 'thumb.jpg';
   const timestamp = Date.now();
-  const key = r2Key(`thumbnails/${timestamp}-${safeName}`);
+  const driveFileName = `${timestamp}-${safeName}`;
   
-  const url = await getPresignedPutUrl(key, contentType, 600);
+  try {
+    const origin = req.headers.get('origin') || 'http://localhost:3000';
+    const { uploadUrl } = await createResumableUploadSession(
+      driveFileName,
+      contentType,
+      DRIVE_FOLDERS.THUMBNAILS,
+      origin
+    );
 
-  return NextResponse.json({ url, key });
+    return NextResponse.json({ url: uploadUrl, isGoogleDrive: true });
+  } catch (error: any) {
+    console.error('Thumbnail upload session creation failed:', error);
+    return NextResponse.json({ error: 'Failed to create upload session' }, { status: 500 });
+  }
 }

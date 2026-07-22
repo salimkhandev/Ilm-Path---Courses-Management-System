@@ -41,9 +41,9 @@ export default function NewCoursePage() {
         throw new Error(d.error || 'Failed to get upload URL');
       }
       
-      const { url, key } = await urlRes.json();
+      const { url, key, isGoogleDrive } = await urlRes.json();
 
-      // 2. Compress then upload directly to Cloudflare R2
+      // 2. Compress then upload directly
       const compressedBlob = await compressImage(file, 800, 800, 0.7);
       const uploadRes = await fetch(url, {
         method: 'PUT',
@@ -51,13 +51,26 @@ export default function NewCoursePage() {
         body: compressedBlob
       });
 
-      if (!uploadRes.ok) throw new Error('Failed to upload thumbnail to R2.');
+      if (!uploadRes.ok) {
+        const errorText = await uploadRes.text();
+        console.error('Thumbnail upload failed:', uploadRes.status, errorText);
+        throw new Error(`Failed to upload thumbnail: ${uploadRes.status} ${errorText}`);
+      }
+
+      let finalKey = key;
+      let finalDriveFileId = undefined;
+
+      if (isGoogleDrive) {
+        const fileMetadata = await uploadRes.json();
+        finalDriveFileId = fileMetadata.id;
+        finalKey = '';
+      }
 
       // 3. Create the Course document in MongoDB
       const createRes = await fetch('/api/admin/courses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, price, thumbnailKey: key })
+        body: JSON.stringify({ title, description, price, thumbnailKey: finalKey, driveThumbnailId: finalDriveFileId })
       });
 
       if (!createRes.ok) {

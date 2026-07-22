@@ -42,8 +42,15 @@ export async function GET(
 
   const video = course.videos[0];
 
-  // 2 hours expiry for streaming per §10
-  const url = await getPresignedGetUrl(video.r2Key, 7200);
+  // If we still have an r2Key and no driveFileId (backward compatibility)
+  if (!video.driveFileId && video.r2Key) {
+    const url = await getPresignedGetUrl(video.r2Key, 7200);
+    return NextResponse.json({ url });
+  }
 
-  return NextResponse.json({ url });
+  if (!video.driveFileId) {
+    return NextResponse.json({ error: 'Video file missing.' }, { status: 404 });
+  }
+
+  return NextResponse.json({ url: `/api/video/${videoId}/stream` });
 }

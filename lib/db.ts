@@ -10,18 +10,35 @@ if (!MONGODB_URI) {
 // and across serverless function invocations in prod
 declare global {
   // eslint-disable-next-line no-var
-  var _mongooseConn: typeof mongoose | null;
+  var mongooseCache: {
+    conn: typeof mongoose | null;
+    promise: Promise<typeof mongoose> | null;
+  };
 }
 
-let cached = global._mongooseConn ?? null;
+let cached = global.mongooseCache;
+
+if (!cached) {
+  cached = global.mongooseCache = { conn: null, promise: null };
+}
 
 export async function connectDB(): Promise<typeof mongoose> {
-  if (cached) return cached;
+  if (cached.conn) {
+    return cached.conn;
+  }
 
-  cached = await mongoose.connect(MONGODB_URI, {
-    bufferCommands: false,
-  });
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      bufferCommands: false,
+    }).then((m) => m);
+  }
 
-  global._mongooseConn = cached;
-  return cached;
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
 }
