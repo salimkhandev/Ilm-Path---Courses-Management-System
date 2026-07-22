@@ -172,7 +172,7 @@ export default function WatchVideoPage() {
       // it's also populated before the user actually goes offline.
       if ('caches' in window) {
         try {
-          const cache = await caches.open('app-cache-V9');
+          const cache = await caches.open('app-cache-V13');
           await cache.add('/downloads');
         } catch (e) {
           console.warn('Failed to pre-cache /downloads for offline viewing', e);
