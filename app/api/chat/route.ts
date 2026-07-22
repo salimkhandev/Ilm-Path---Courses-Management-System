@@ -54,7 +54,6 @@ Mode-specific Instructions:`;
       maxTokens: 300,
     });
 
-    // @ts-expect-error - The AI SDK types are mismatched but this method exists and is required by useChat
     return result.toDataStreamResponse();
   } catch (error) {
     console.error('Chat API Error:', error);
