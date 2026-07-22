@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const driveFileName = `${timestamp}-${safeName}`;
   
   try {
-    const origin = req.headers.get('origin') || 'http://localhost:3000';
+    const origin = req.headers.get('origin') || process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const { uploadUrl } = await createResumableUploadSession(
       driveFileName,
       contentType,
