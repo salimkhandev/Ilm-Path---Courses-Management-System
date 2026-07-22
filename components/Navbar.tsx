@@ -9,6 +9,7 @@ import { useNetwork } from '@/hooks/useNetwork';
 
 const NAV_LINKS = [
   { href: '/courses', label: 'Courses' },
+  { href: '/tutor', label: '🤖 AI Tutor' },
   { href: '/about', label: 'About' },
 ];
 
@@ -23,7 +24,7 @@ export default function Navbar() {
   // Determine which links to show based on network status
   const visibleNavLinks = isOnline 
     ? NAV_LINKS 
-    : NAV_LINKS.filter(link => !link.href.startsWith('/courses'));
+    : NAV_LINKS.filter(link => !link.href.startsWith('/courses') && !link.href.startsWith('/tutor'));
 
   return (
     <header className="sticky top-0 z-50 bg-slate-950/85 backdrop-blur-md border-b border-slate-800">
@@ -72,14 +73,7 @@ export default function Navbar() {
                 >
                   {session.user.role === 'admin' ? 'Admin Panel' : 'My Learning'}
                 </Link>
-                {session.user.role !== 'admin' && (
-                  <Link
-                    href="/tutor"
-                    className="text-sm font-semibold text-brand-400 no-underline px-3 py-1.5 rounded-md hover:text-brand-300 hover:bg-brand-500/10 transition-colors flex items-center gap-1"
-                  >
-                    🤖 AI Tutor
-                  </Link>
-                )}
+
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className="text-sm text-slate-500 bg-none border-none cursor-pointer px-3 py-1.5 hover:text-slate-400 transition-colors"
@@ -173,15 +167,7 @@ export default function Navbar() {
                   >
                     {session.user.role === 'admin' ? 'Admin Panel' : 'My Learning'}
                   </Link>
-                  {session.user.role !== 'admin' && (
-                    <Link
-                      href="/tutor"
-                      onClick={() => setMenuOpen(false)}
-                      className="text-sm font-semibold text-brand-400 no-underline px-3 py-2 rounded-md hover:text-brand-300 hover:bg-slate-800 transition-colors flex items-center gap-2"
-                    >
-                      🤖 AI Tutor
-                    </Link>
-                  )}
+
                   <button
                     onClick={() => {
                       signOut({ callbackUrl: '/' });
