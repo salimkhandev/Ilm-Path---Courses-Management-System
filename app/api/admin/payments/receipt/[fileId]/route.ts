@@ -1,44 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { getDriveFileStream } from '@/lib/gdrive';
+import { getDriveStreamResponse, getDriveFileMetadata } from '@/lib/gdrive';
 
 export async function GET(
   req: NextRequest,
-  ctx: RouteContext<'/api/admin/payments/receipt/[fileId]'>
+  ctx: any
 ) {
+  const { fileId } = await ctx.params;
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
   if (!token || token.role !== 'admin') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { fileId } = await ctx.params;
-
   try {
-    const { stream, status, headers } = await getDriveFileStream(fileId, null);
+    const driveRes = await getDriveStreamResponse(fileId, null);
+    
+    // We optionally get metadata to know the content type, but Drive API alt=media response
+    // already has the correct content-type header usually.
+    const metadata = await getDriveFileMetadata(fileId);
 
-    const webStream = new ReadableStream({
-      async pull(controller) {
-        for await (const chunk of stream) {
-          controller.enqueue(chunk);
-        }
-        controller.close();
-      },
-      cancel() {
-        stream.destroy();
-      }
-    });
-
-    return new NextResponse(webStream, {
-      status,
+    return new NextResponse(driveRes.body, {
+      status: 200,
       headers: {
-        'Content-Type': headers['content-type'] || 'image/jpeg',
-        ...(headers['content-length'] && { 'Content-Length': headers['content-length'] }),
+        'Content-Type': metadata.mimeType || driveRes.headers.get('content-type') || 'application/octet-stream',
         // Cache control to avoid re-fetching on every scroll in admin panel
-        'Cache-Control': 'private, max-age=3600',
+        'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
   } catch (error: any) {
-    console.error('Drive stream error for receipt:', error);
+    console.error('Failed to stream receipt:', error);
     return NextResponse.json({ error: 'Failed to fetch receipt.' }, { status: 500 });
   }
 }
