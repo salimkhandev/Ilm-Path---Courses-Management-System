@@ -177,9 +177,9 @@ export default function HomePage() {
               <div className="flex items-center gap-3 text-amber-500 font-semibold">
                 <Phone className="w-5 h-5" /> Phone & WhatsApp
               </div>
-              <p className="text-slate-300 text-sm">
-                0342-5015034<br />
-                0318-5263800
+              <p className="text-slate-300 text-sm flex flex-col gap-1">
+                <a href="https://wa.me/923425015034" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">0342-5015034</a>
+                <a href="https://wa.me/923185263800" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">0318-5263800</a>
               </p>
             </div>
             
@@ -188,7 +188,7 @@ export default function HomePage() {
                 <Mail className="w-5 h-5" /> Email Address
               </div>
               <p className="text-slate-300 text-sm">
-                sunriseacademy1122@gmail.com
+                <a href="mailto:sunriseacademy1122@gmail.com" className="hover:text-amber-400 transition-colors">sunriseacademy1122@gmail.com</a>
               </p>
             </div>
 
@@ -197,7 +197,7 @@ export default function HomePage() {
                 <MapPin className="w-5 h-5" /> Location
               </div>
               <p className="text-slate-300 text-sm">
-                Pakistan
+                <a href="https://maps.google.com/?q=Timergara,+Pakistan" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">Timergara, Pakistan</a>
               </p>
             </div>
           </div>
