@@ -54,13 +54,22 @@ export default async function StudentDashboardPage() {
               </p>
             </div>
 
-            <Link
-              href="/downloads"
-              className="text-sm font-semibold px-4 py-2 border rounded-lg hover:bg-surface-2 transition-colors flex items-center gap-2"
-              style={{ color: 'var(--text-secondary)', borderColor: 'var(--surface-2)', textDecoration: 'none' }}
-            >
-              📴 Offline Downloads
-            </Link>
+            <div className="flex gap-3">
+              <Link
+                href="/tutor"
+                className="text-sm font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl"
+                style={{ background: 'var(--brand-500)', color: '#0f172a', textDecoration: 'none' }}
+              >
+                🤖 AI Tutor
+              </Link>
+              <Link
+                href="/downloads"
+                className="text-sm font-semibold px-4 py-2 border rounded-lg hover:bg-surface-2 transition-colors flex items-center gap-2"
+                style={{ color: 'var(--text-secondary)', borderColor: 'var(--surface-2)', textDecoration: 'none' }}
+              >
+                📴 Downloads
+              </Link>
+            </div>
           </div>
 
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem' }}>

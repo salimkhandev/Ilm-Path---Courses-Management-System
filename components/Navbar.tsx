@@ -34,8 +34,8 @@ export default function Navbar() {
             href="/"
             className="flex-shrink-0 font-bold text-xl text-amber-500 no-underline tracking-tight flex items-center gap-2"
           >
-            <Image src="/logo.png" alt="PashtoSkills" width={32} height={32} className="rounded-md" />
-            PashtoSkills
+            <Image src="/eng-fav.jpg" alt="Sunrise Academy" width={32} height={32} className="rounded-md" />
+            Sunrise Academy
           </Link>
 
           {/* Desktop nav */}
@@ -72,6 +72,14 @@ export default function Navbar() {
                 >
                   {session.user.role === 'admin' ? 'Admin Panel' : 'My Learning'}
                 </Link>
+                {session.user.role !== 'admin' && (
+                  <Link
+                    href="/tutor"
+                    className="text-sm font-semibold text-brand-400 no-underline px-3 py-1.5 rounded-md hover:text-brand-300 hover:bg-brand-500/10 transition-colors flex items-center gap-1"
+                  >
+                    🤖 AI Tutor
+                  </Link>
+                )}
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className="text-sm text-slate-500 bg-none border-none cursor-pointer px-3 py-1.5 hover:text-slate-400 transition-colors"
@@ -165,6 +173,15 @@ export default function Navbar() {
                   >
                     {session.user.role === 'admin' ? 'Admin Panel' : 'My Learning'}
                   </Link>
+                  {session.user.role !== 'admin' && (
+                    <Link
+                      href="/tutor"
+                      onClick={() => setMenuOpen(false)}
+                      className="text-sm font-semibold text-brand-400 no-underline px-3 py-2 rounded-md hover:text-brand-300 hover:bg-slate-800 transition-colors flex items-center gap-2"
+                    >
+                      🤖 AI Tutor
+                    </Link>
+                  )}
                   <button
                     onClick={() => {
                       signOut({ callbackUrl: '/' });

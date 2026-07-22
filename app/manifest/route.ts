@@ -1,12 +1,12 @@
 export async function GET() {
   const manifest = {
-    name: "Online Skills in Pashto",
-    short_name: "PashtoSkills",
-    description: "Learn high-income online skills in Pashto",
+    name: "Sunrise English Language and Skills Academy",
+    short_name: "Sunrise Academy",
+    description: "Learn English language and communication skills with Hafiz Mujeeb",
     start_url: "/",
     display: "standalone",
     background_color: "#0a0a0a",
-    theme_color: "#3b82f6",
+    theme_color: "#f59e0b",
     orientation: "any",
     scope: "/",
     categories: ["education", "learning"],
