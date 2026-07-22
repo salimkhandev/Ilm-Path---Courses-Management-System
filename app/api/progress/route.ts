@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       watchedSeconds: secondsWatched,
       completed: isCompleted,
     },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
 
   // Check if course is now 100% complete

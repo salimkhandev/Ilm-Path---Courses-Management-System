@@ -18,8 +18,6 @@ const PasswordResetSchema = new Schema<IPasswordReset>(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-// Unique index on token for fast lookup
-PasswordResetSchema.index({ token: 1 }, { unique: true });
 // TTL index — MongoDB auto-deletes expired docs (expireAfterSeconds: 0 uses the expiresAt field value)
 PasswordResetSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 

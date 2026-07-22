@@ -32,7 +32,6 @@ const UserSchema = new Schema<IUser>(
 );
 
 // Indexes — also created explicitly in db-indexes.ts for Atlas setup
-UserSchema.index({ email: 1 }, { unique: true });
 UserSchema.index({ status: 1 });
 
 const User: Model<IUser> =
