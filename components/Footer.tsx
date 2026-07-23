@@ -14,7 +14,7 @@ export default function Footer() {
     <footer className="mt-auto border-t border-slate-800 px-6 py-10 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-7xl flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <Image src="/eng-fav.jpg" alt="Sunrise Academy" width={40} height={40} className="rounded-md" />
+          <Image src="/profile.jpg" alt="Sunrise Academy" width={40} height={40} className="rounded-md" />
           <div>
             <p className="font-bold text-lg text-amber-500">Sunrise Academy</p>
             <p className="text-xs text-slate-500 mt-1">Learn Without Limits</p>

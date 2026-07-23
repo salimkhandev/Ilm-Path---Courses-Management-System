@@ -35,7 +35,7 @@ export default function Navbar() {
             href="/"
             className="flex-shrink-0 font-bold text-xl text-amber-500 no-underline tracking-tight flex items-center gap-2"
           >
-            <Image src="/eng-fav.jpg" alt="Sunrise Academy" width={32} height={32} className="rounded-md" />
+            <Image src="/profile.jpg" alt="Sunrise Academy" width={32} height={32} className="rounded-md" />
             Sunrise Academy
           </Link>
 
